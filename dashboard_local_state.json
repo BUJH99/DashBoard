@@ -1,0 +1,35 @@
+{
+  "ui": {
+    "activeTab": "overview",
+    "postingQuery": "",
+    "postingCompanyFilter": "all",
+    "selectedCompanyId": 1,
+    "selectedOfferA": "삼성전자 (DS)",
+    "selectedOfferB": "리벨리온",
+    "portfolioSubTab": "showcase",
+    "selectedChecklistPostingId": 101,
+    "selectedEssayId": 301,
+    "industryFilter": "All",
+    "flashcardMode": "default",
+    "activeFlashcardIndex": 0,
+    "selectedScheduleId": 2,
+    "selectedCoverLetterName": null
+  },
+  "location": {
+    "routeOrigin": "집",
+    "routeDestination": "삼성전자 (DS/LSI)",
+    "companyCommuteNotes": {}
+  },
+  "checklists": {
+    "applicationChecklists": {}
+  },
+  "interview": {
+    "flashcardFeedback": {}
+  },
+  "jdScanner": {
+    "text": "우대사항\n- Verilog / SystemVerilog 기반 RTL 설계 경험\n- UVM 검증 환경 이해\n- AMBA AXI, FPGA 프로토타이핑 경험\n- 저전력 설계 또는 CDC 분석 경험"
+  },
+  "overview": {
+    "taskChecked": {}
+  }
+}
