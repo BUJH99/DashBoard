@@ -16,5 +16,5 @@
     "strict": true,
     "types": ["node"]
   },
-  "include": ["src", "Dashboard_MERGED.tsx", "vite.config.ts"]
+  "include": ["src", "shared", "Dashboard_MERGED.tsx", "vite.config.ts"]
 }
