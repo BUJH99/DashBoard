@@ -1,0 +1,65 @@
+{
+  "name": "career-dashboard-glass-bento",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "dist-electron/main.cjs",
+  "scripts": {
+    "dev": "vite",
+    "build:renderer": "tsc --noEmit && vite build",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "build": "npm run build:renderer && npm run build:electron",
+    "start": "npm run electron:local",
+    "electron:local": "npm run build && electron dist-electron/main.cjs",
+    "electron:dev": "npm run electron:local",
+    "electron:pack": "npm run build && electron-builder --win portable"
+  },
+  "dependencies": {
+    "@fullcalendar/core": "^6.1.20",
+    "@fullcalendar/daygrid": "^6.1.20",
+    "@fullcalendar/interaction": "^6.1.20",
+    "@fullcalendar/list": "^6.1.20",
+    "@fullcalendar/react": "^6.1.20",
+    "@fullcalendar/timegrid": "^6.1.20",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^0.577.0",
+    "overlayscrollbars": "^2.14.0",
+    "overlayscrollbars-react": "^0.5.6",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.2.1",
+    "@types/leaflet": "^1.9.21",
+    "@types/node": "^24.3.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.4",
+    "electron": "^37.2.6",
+    "electron-builder": "^26.0.12",
+    "tailwindcss": "^4.2.1",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
+  },
+  "build": {
+    "appId": "com.tbdk5.careerdashboarddesktop",
+    "productName": "CareerDashboard-GlassBento",
+    "artifactName": "CareerDashboard-GlassBento.${ext}",
+    "directories": {
+      "output": "release"
+    },
+    "forceCodeSigning": false,
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json",
+      "build-resources/**/*"
+    ],
+    "win": {
+      "target": "portable",
+      "executableName": "CareerDashboard-GlassBento",
+      "signAndEditExecutable": false,
+      "icon": "build-resources/icon.ico"
+    }
+  }
+}

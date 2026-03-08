@@ -1,0 +1,154 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+@import "overlayscrollbars/styles/overlayscrollbars.css";
+
+:root {
+  --os-size: 12px;
+  --os-padding-perpendicular: 4px;
+  --os-padding-axis: 4px;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  background: #f4f7fb;
+}
+
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  background: #e5e7eb;
+  font: inherit;
+}
+
+.leaflet-container img,
+.leaflet-container .leaflet-tile,
+.leaflet-container .leaflet-marker-icon,
+.leaflet-container .leaflet-marker-shadow {
+  max-width: none !important;
+  max-height: none !important;
+}
+
+.leaflet-container .leaflet-control-attribution {
+  font-size: 11px;
+}
+
+.os-theme-career,
+.os-theme-career-dark {
+  --os-handle-interactive-area-offset: 4px;
+  --os-handle-interactive-area-offset-edge: 2px;
+  --os-track-bg: rgba(255, 255, 255, 0.18);
+  --os-track-bg-hover: rgba(255, 255, 255, 0.24);
+}
+
+.os-theme-career .os-scrollbar-track,
+.os-theme-career-dark .os-scrollbar-track {
+  border-radius: 999px;
+  background: var(--os-track-bg);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
+.os-theme-career .os-scrollbar-handle,
+.os-theme-career-dark .os-scrollbar-handle {
+  border-radius: 999px;
+  transition: transform 160ms ease, background-color 160ms ease, opacity 160ms ease, box-shadow 160ms ease;
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+}
+
+.os-theme-career .os-scrollbar {
+  --os-size: 13px;
+  --os-handle-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(148, 163, 184, 0.54));
+  --os-handle-bg-hover: linear-gradient(180deg, rgba(103, 232, 249, 0.96), rgba(59, 130, 246, 0.9));
+  --os-handle-bg-active: linear-gradient(180deg, rgba(34, 197, 94, 0.96), rgba(14, 165, 233, 0.96));
+}
+
+.os-theme-career-dark .os-scrollbar {
+  --os-size: 13px;
+  --os-handle-bg: linear-gradient(180deg, rgba(148, 163, 184, 0.36), rgba(255, 255, 255, 0.28));
+  --os-handle-bg-hover: linear-gradient(180deg, rgba(34, 211, 238, 0.98), rgba(59, 130, 246, 0.92));
+  --os-handle-bg-active: linear-gradient(180deg, rgba(125, 211, 252, 1), rgba(96, 165, 250, 1));
+}
+
+.os-theme-career .os-scrollbar-vertical,
+.os-theme-career-dark .os-scrollbar-vertical {
+  padding: 12px 4px;
+}
+
+.os-theme-career .os-scrollbar-horizontal,
+.os-theme-career-dark .os-scrollbar-horizontal {
+  padding: 4px 12px;
+}
+
+.os-theme-career .os-scrollbar:hover .os-scrollbar-handle,
+.os-theme-career-dark .os-scrollbar:hover .os-scrollbar-handle {
+  transform: scale(1.06);
+  box-shadow: 0 10px 22px rgba(14, 165, 233, 0.18);
+}
+
+.os-theme-career .os-scrollbar:hover .os-scrollbar-track,
+.os-theme-career-dark .os-scrollbar:hover .os-scrollbar-track {
+  background: var(--os-track-bg-hover);
+}
+
+.os-scrollbar {
+  z-index: 40;
+}
+
+.career-calendar .fc {
+  --fc-border-color: rgba(203, 213, 225, 0.8);
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: rgba(248, 250, 252, 0.85);
+  --fc-today-bg-color: rgba(34, 211, 238, 0.12);
+  --fc-button-bg-color: #0f172a;
+  --fc-button-border-color: #0f172a;
+  --fc-button-hover-bg-color: #1e293b;
+  --fc-button-hover-border-color: #1e293b;
+  --fc-button-active-bg-color: #0f172a;
+  --fc-button-active-border-color: #0f172a;
+  --fc-event-bg-color: #0f172a;
+  --fc-event-border-color: #0f172a;
+  --fc-event-text-color: #ffffff;
+}
+
+.career-calendar .fc-toolbar-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.career-calendar .fc .fc-button {
+  border-radius: 999px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.career-calendar .fc .fc-daygrid-day-number,
+.career-calendar .fc .fc-col-header-cell-cushion {
+  color: #475569;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.career-calendar .fc .fc-event {
+  border-radius: 12px;
+  padding: 0.15rem 0.35rem;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+.career-calendar .fc .fc-list-event:hover td,
+.career-calendar .fc .fc-daygrid-event:hover {
+  background: rgba(34, 211, 238, 0.08);
+}
