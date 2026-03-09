@@ -4,4 +4,3 @@ dist-electron/
 release/
 .vite/
 npm-debug.log*
-.omx/
