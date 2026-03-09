@@ -4,7 +4,7 @@ import { isExternalUrl, startInternalRendererServer } from "./rendererServer.cjs
 
 export async function createMainWindow() {
   const rendererUrl = await startInternalRendererServer();
-  const appIconPath = path.join(__dirname, "..", "..", "build-resources", "icon.ico");
+  const appIconPath = path.join(__dirname, "..", "..", "..", "build-resources", "icon.ico");
   const win = new BrowserWindow({
     width: 1520,
     height: 980,

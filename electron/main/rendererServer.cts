@@ -31,7 +31,7 @@ export async function startInternalRendererServer() {
     return internalRendererUrl;
   }
 
-  const distRoot = path.join(__dirname, "..", "..", "dist");
+  const distRoot = path.join(__dirname, "..", "..", "..", "dist");
   await fs.access(path.join(distRoot, "index.html"));
 
   internalRendererServer = createServer(async (req, res) => {

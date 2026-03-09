@@ -9,6 +9,8 @@ npm install
 npm start
 ```
 
+`npm start`는 로컬 실행용이며 exe를 만들지 않습니다.
+
 ## Build
 
 ```powershell
@@ -18,7 +20,7 @@ npm run electron:pack
 
 생성된 실행 파일 경로:
 
-`C:\Users\tbdk5\Desktop\MAIN\0_Working\DashBoard\release\CareerDashboard-Desktop.exe`
+`release\win-unpacked\CareerDashboard-GlassBento.exe`
 
 ## Structure
 
