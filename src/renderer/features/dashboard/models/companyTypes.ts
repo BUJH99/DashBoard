@@ -24,6 +24,8 @@ export type CompanyTarget = {
   lat: number;
   lng: number;
   stage: CompanyPipelineStage;
+  naverPlaceId?: string | null;
+  naverPlaceType?: "ADDRESS_POI" | "PLACE_POI" | "SUBWAY_STATION";
 };
 
 export type CompanyDetail = {
@@ -31,6 +33,35 @@ export type CompanyDetail = {
   roleDescription: string;
   techStack: string[];
   news: string[];
+};
+
+export type CompanyComparisonMetricKey =
+  | "salary"
+  | "growth"
+  | "wlb"
+  | "location"
+  | "culture";
+
+export type CompanyComparisonProfile = {
+  salary: number;
+  growth: number;
+  wlb: number;
+  location: number;
+  culture: number;
+  base: string;
+  bonus: string;
+};
+
+export type CompanyAnalysisDetail = CompanyDetail & {
+  comparison: CompanyComparisonProfile;
+};
+
+export type CompanyComparisonRow = {
+  label: string;
+  left: string;
+  right: string;
+  leftScore?: number;
+  rightScore?: number;
 };
 
 export type JobPosting = DashboardJobPostingEntry & {

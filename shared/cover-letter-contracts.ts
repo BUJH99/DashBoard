@@ -42,6 +42,10 @@ export type CoverLetterSavePayload = {
   content: string;
 };
 
+export type CoverLetterDeletePayload = {
+  names: string[];
+};
+
 export type CoverLetterReadResult = {
   file: CoverLetterRecord;
   content: string;
@@ -56,4 +60,9 @@ export type CoverLetterSaveResponse = {
   savedName: string;
   files: CoverLetterRecord[];
   detail: CoverLetterReadResult;
+};
+
+export type CoverLetterDeleteResponse = {
+  deletedNames: string[];
+  files: CoverLetterRecord[];
 };

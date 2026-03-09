@@ -8,6 +8,7 @@ const desktopApi: DesktopApi = {
     list: () => ipcRenderer.invoke(IPC_CHANNELS.coverletters.list),
     read: (name) => ipcRenderer.invoke(IPC_CHANNELS.coverletters.read, name),
     save: (payload) => ipcRenderer.invoke(IPC_CHANNELS.coverletters.save, payload),
+    remove: (payload) => ipcRenderer.invoke(IPC_CHANNELS.coverletters.remove, payload),
   },
   dashboardState: {
     read: () => ipcRenderer.invoke(IPC_CHANNELS.dashboardState.read),

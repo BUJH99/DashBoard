@@ -1,5 +1,6 @@
 import { RefreshCcw, Search, SlidersHorizontal } from "lucide-react";
 import { Sparkline } from "../../../../components/charts/DashboardCharts";
+import { GlassSelect } from "../../../../components/ui/GlassSelect";
 import { Pill, SurfaceCard } from "../../../../components/ui/primitives";
 import type { DashboardController } from "../../useDashboardController";
 
@@ -42,21 +43,19 @@ export function OverviewActionFlowSection({
           </label>
 
           <div className="flex flex-col gap-3 sm:flex-row">
-            <label className="relative flex-1">
-              <SlidersHorizontal className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <select
-                value={overview.filters.companyFilter}
-                onChange={(event) => overview.filters.setCompanyFilter(event.target.value)}
-                className="w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-700 outline-none transition focus:border-cyan-300 focus:bg-white"
-              >
-                <option value="all">전체 기업</option>
-                {overview.filters.companyOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <GlassSelect
+              ariaLabel="전체 지원 흐름 기업 필터"
+              value={overview.filters.companyFilter}
+              options={[
+                { value: "all", label: "전체 기업" },
+                ...overview.filters.companyOptions,
+              ]}
+              onChange={overview.filters.setCompanyFilter}
+              tone="cyan"
+              size="sm"
+              className="flex-1"
+              icon={<SlidersHorizontal className="h-4 w-4" />}
+            />
 
             <button
               type="button"

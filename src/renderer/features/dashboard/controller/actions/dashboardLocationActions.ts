@@ -51,9 +51,7 @@ export function createDashboardLocationActions({
       },
     }));
 
-  const openTransitDirections = () => {
-    void openExternalUrl(transitDirectionsUrl);
-  };
+  const openTransitDirections = () => openExternalUrl(transitDirectionsUrl);
 
   return {
     updateCommuteNote,

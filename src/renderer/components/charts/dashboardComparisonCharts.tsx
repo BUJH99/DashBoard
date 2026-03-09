@@ -286,11 +286,13 @@ export function RadarChart({
   data2,
   color1,
   color2,
+  className,
 }: {
   data1: OfferProfile;
   data2: OfferProfile;
   color1: string;
   color2: string;
+  className?: string;
 }) {
   const center = 150;
   const radius = 100;
@@ -307,7 +309,10 @@ export function RadarChart({
       .join(" ");
 
   return (
-    <svg viewBox="0 0 300 300" className="mx-auto h-full w-full max-w-sm overflow-visible">
+    <svg
+      viewBox="0 0 300 300"
+      className={cn("mx-auto h-full w-full max-w-sm overflow-visible", className)}
+    >
       {[0.2, 0.4, 0.6, 0.8, 1].map((level) => (
         <polygon
           key={level}

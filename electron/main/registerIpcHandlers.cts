@@ -1,10 +1,14 @@
-import type { CoverLetterSavePayload } from "../../shared/cover-letter-contracts.js";
+import type {
+  CoverLetterDeletePayload,
+  CoverLetterSavePayload,
+} from "../../shared/cover-letter-contracts.js";
 import type { DashboardLocalState } from "../../shared/dashboard-state-contracts.js";
 import { ipcMain, shell } from "electron";
 import {
   getCoverLetterConfig,
   listCoverLetters,
   readCoverLetter,
+  removeCoverLetters,
   saveCoverLetter,
 } from "../storage/coverLetterRepository.cjs";
 import {
@@ -20,6 +24,10 @@ export function registerIpcHandlers() {
   ipcMain.handle(
     IPC_CHANNELS.coverletters.save,
     async (_event, payload: CoverLetterSavePayload) => saveCoverLetter(payload),
+  );
+  ipcMain.handle(
+    IPC_CHANNELS.coverletters.remove,
+    async (_event, payload: CoverLetterDeletePayload) => removeCoverLetters(payload),
   );
   ipcMain.handle(IPC_CHANNELS.dashboardState.read, async () => ({
     state: await readDashboardState(),

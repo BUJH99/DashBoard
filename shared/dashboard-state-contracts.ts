@@ -38,6 +38,24 @@ export type CommuteNote = {
   note: string;
 };
 
+export type CompanyAnalysisComparisonProfile = {
+  salary: number;
+  growth: number;
+  wlb: number;
+  location: number;
+  culture: number;
+  base: string;
+  bonus: string;
+};
+
+export type CompanyAnalysisEntry = {
+  description: string;
+  roleDescription: string;
+  techStack: string[];
+  news: string[];
+  comparison: CompanyAnalysisComparisonProfile;
+};
+
 export type DashboardLocalState = {
   ui: {
     activeTab: DashboardTab;
@@ -80,5 +98,12 @@ export type DashboardLocalState = {
     query: string;
     companyFilter: string;
     taskChecked: Record<number, boolean>;
+  };
+  companyAnalysis: {
+    compareCompanyId: number;
+    entries: Record<number, CompanyAnalysisEntry>;
+  };
+  coverLetters: {
+    questionPresets: Record<number, string[]>;
   };
 };

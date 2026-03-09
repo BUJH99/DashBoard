@@ -1,10 +1,29 @@
-import { cn } from "../../../../lib/cn";
+import { MapPin } from "lucide-react";
+import { ScrollArea } from "../../../../components/ui/ScrollArea";
 import { SurfaceCard } from "../../../../components/ui/primitives";
+import { cn } from "../../../../lib/cn";
 import type { DashboardController } from "../../useDashboardController";
+import { getCompanyTypeTone } from "../viewUtils";
 
 type CompanyPostingFilterSectionProps = {
   companies: DashboardController["companies"];
 };
+
+function getCompanyTypeLabel(type: string) {
+  if (type === "집중 지원") {
+    return "집중공략";
+  }
+  if (type === "스트레치") {
+    return "상향지원";
+  }
+  if (type === "안정 카드") {
+    return "안정지원";
+  }
+  if (type === "균형 카드") {
+    return "균형지원";
+  }
+  return type;
+}
 
 export function CompanyPostingFilterSection({
   companies,
@@ -12,52 +31,47 @@ export function CompanyPostingFilterSection({
   return (
     <SurfaceCard className="overflow-hidden">
       <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
-        <h3 className="font-bold text-slate-900">공고 목록</h3>
+        <h3 className="font-bold text-slate-900">분석 대상 기업 리스트</h3>
       </div>
-      <div className="space-y-3 p-4">
-        <input
-          value={companies.postingQuery}
-          onChange={(event) => companies.setPostingQuery(event.target.value)}
-          className="w-full rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-300"
-          placeholder="기업명, 직무, 키워드 검색"
-        />
-        <select
-          value={companies.postingCompanyFilter}
-          onChange={(event) => companies.setPostingCompanyFilter(event.target.value)}
-          className="w-full rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-300"
-        >
-          <option value="all">전체 기업</option>
+      <ScrollArea className="h-[980px] px-3 py-3">
+        <div className="space-y-3">
           {companies.companyTargets.map((company) => (
-            <option key={company.id} value={company.id}>
-              {company.name}
-            </option>
+            <button
+              key={company.id}
+              type="button"
+              onClick={() => companies.updateSelectedCompanyId(company.id)}
+              className={cn(
+                "w-full rounded-[22px] border p-4 text-left transition-all duration-200",
+                companies.selectedCompany.id === company.id
+                  ? "border-cyan-300 bg-cyan-50/35 shadow-[0_10px_24px_rgba(34,211,238,0.12)]"
+                  : "border-transparent bg-white hover:border-slate-200 hover:bg-slate-50/80",
+              )}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <h4 className="text-[16px] font-black text-slate-900">{company.name}</h4>
+                  <p className="mt-2 flex items-center gap-1.5 text-[13px] text-slate-500">
+                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{company.location}</span>
+                  </p>
+                </div>
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-bold",
+                    getCompanyTypeTone(company.type),
+                  )}
+                >
+                  {getCompanyTypeLabel(company.type)}
+                </span>
+              </div>
+              <div className="mt-3 flex items-center justify-between gap-3 text-[13px] font-semibold">
+                <span className="text-slate-500">{company.status}</span>
+                <span className="text-slate-700">선호도 {company.preference}%</span>
+              </div>
+            </button>
           ))}
-        </select>
-      </div>
-      <div className="space-y-2 p-3">
-        {companies.filteredPostings.map((posting) => (
-          <button
-            key={posting.id}
-            type="button"
-            onClick={() => companies.setSelectedPostingId(posting.id)}
-            className={cn(
-              "flex w-full items-center justify-between rounded-2xl border p-4 text-left transition",
-              companies.selectedJobPosting.id === posting.id
-                ? "border-cyan-300 bg-cyan-50/50 shadow-sm"
-                : "border-transparent hover:bg-slate-50",
-            )}
-          >
-            <div>
-              <p className="font-semibold text-slate-800">{posting.company}</p>
-              <p className="mt-1 text-sm text-slate-500">{posting.title}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm font-semibold text-slate-700">D-{posting.daysLeft}</p>
-              <p className="mt-1 text-xs text-slate-400">우선순위 {posting.priority}</p>
-            </div>
-          </button>
-        ))}
-      </div>
+        </div>
+      </ScrollArea>
     </SurfaceCard>
   );
 }

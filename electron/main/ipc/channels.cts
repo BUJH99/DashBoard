@@ -4,6 +4,7 @@ export const IPC_CHANNELS = {
     list: "coverletters:list",
     read: "coverletters:read",
     save: "coverletters:save",
+    remove: "coverletters:remove",
   },
   dashboardState: {
     read: "dashboard-state:read",

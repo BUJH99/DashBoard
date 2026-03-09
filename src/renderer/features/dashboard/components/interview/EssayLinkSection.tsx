@@ -1,4 +1,5 @@
 import { BookOpen } from "lucide-react";
+import { GlassSelect } from "../../../../components/ui/GlassSelect";
 import { Pill, SurfaceCard } from "../../../../components/ui/primitives";
 import type { DashboardController } from "../../useDashboardController";
 
@@ -21,17 +22,17 @@ export function EssayLinkSection({
           </div>
           <BookOpen className="h-5 w-5 text-cyan-600" />
         </div>
-        <select
-          value={essays.selectedEssay.id}
-          onChange={(event) => essays.setSelectedEssayId(Number(event.target.value))}
-          className="w-full rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-300"
-        >
-          {essays.essayQuestions.map((essay) => (
-            <option key={essay.id} value={essay.id}>
-              {essay.company} / {essay.type}
-            </option>
-          ))}
-        </select>
+        <GlassSelect
+          ariaLabel="면접 준비 자소서 질문 선택"
+          value={String(essays.selectedEssay.id)}
+          onChange={(value) => essays.setSelectedEssayId(Number(value))}
+          options={essays.essayQuestions.map((essay) => ({
+            value: String(essay.id),
+            label: `${essay.company} / ${essay.type}`,
+          }))}
+          tone="violet"
+          size="sm"
+        />
         <div className="mt-4 rounded-2xl border border-slate-200 p-4">
           <p className="font-semibold text-slate-800">{essays.selectedEssay.question}</p>
           <p className="mt-2 text-sm text-slate-500">{essays.selectedEssay.draft}</p>

@@ -1,5 +1,7 @@
 import type {
   CoverLetterConfig,
+  CoverLetterDeletePayload,
+  CoverLetterDeleteResponse,
   CoverLetterReadResult,
   CoverLetterSavePayload,
   CoverLetterSaveResponse,
@@ -127,6 +129,30 @@ export class CoverLetterFileRepository {
       detail: await this.read(fileName),
     };
   }
+
+  async remove(payload: CoverLetterDeletePayload): Promise<CoverLetterDeleteResponse> {
+    await this.ensureDirectory();
+    const targetNames = [...new Set(payload.names.map((name) => sanitizeFileName(name)).filter(Boolean))];
+    const deletedNames: string[] = [];
+
+    for (const name of targetNames) {
+      const filePath = path.resolve(this.directoryPath, name);
+
+      try {
+        await this.fileSystem.unlink(filePath);
+        deletedNames.push(name);
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+          throw error;
+        }
+      }
+    }
+
+    return {
+      deletedNames,
+      files: await this.list(),
+    };
+  }
 }
 
 const coverLetterRepository = new CoverLetterFileRepository(coverLettersDir);
@@ -145,4 +171,10 @@ export async function readCoverLetter(name: string): Promise<CoverLetterReadResu
 
 export async function saveCoverLetter(payload: CoverLetterSavePayload): Promise<CoverLetterSaveResponse> {
   return coverLetterRepository.save(payload);
+}
+
+export async function removeCoverLetters(
+  payload: CoverLetterDeletePayload,
+): Promise<CoverLetterDeleteResponse> {
+  return coverLetterRepository.remove(payload);
 }

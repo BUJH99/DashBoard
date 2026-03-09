@@ -17,6 +17,10 @@ export type {
   NavSection,
 } from "./models/appTypes";
 export type {
+  CompanyAnalysisDetail,
+  CompanyComparisonMetricKey,
+  CompanyComparisonProfile,
+  CompanyComparisonRow,
   CompanyDetail,
   CompanyPipelineStage,
   CompanyStrategyType,
@@ -30,6 +34,7 @@ export type { ScheduleEvent } from "./models/calendarTypes";
 export type {
   CoverLetterDraft,
   CoverLetterDraftMeta,
+  CoverLetterQuestionItem,
   CoverLetterSyncState,
 } from "./models/coverLetterTypes";
 export type {

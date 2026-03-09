@@ -7,7 +7,7 @@ export function useDashboardRouteDestinationSynchronization({
   selectedCompanyName,
 }: Pick<DashboardStateSynchronizationOptions, "dashboardState" | "setDashboardState" | "selectedCompanyName">) {
   useEffect(() => {
-    if (dashboardState.location.routeDestination === selectedCompanyName) {
+    if (dashboardState.location.routeDestination.trim()) {
       return;
     }
 

@@ -1,4 +1,9 @@
 export type PortfolioData = {
+  profile: {
+    initials: string;
+    name: string;
+    handle: string;
+  };
   readiness: number;
   githubCommits: number;
   resumeUpdated: string;

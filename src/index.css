@@ -6,6 +6,7 @@
   --os-size: 12px;
   --os-padding-perpendicular: 4px;
   --os-padding-axis: 4px;
+  --font-sidebar: "Pretendard Variable", "Pretendard", "SUIT Variable", "SUIT", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", sans-serif;
 }
 
 html,
@@ -18,6 +19,16 @@ body,
 body {
   margin: 0;
   background: #f4f7fb;
+}
+
+.career-sidebar,
+.career-sidebar button,
+.career-sidebar p,
+.career-sidebar span,
+.career-sidebar div {
+  font-family: var(--font-sidebar);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 .leaflet-container {

@@ -14,6 +14,7 @@ export type OriginPreset = {
   lat: number | null;
   lng: number | null;
   type: "ADDRESS_POI" | "PLACE_POI" | "SUBWAY_STATION";
+  placeId?: string | null;
 };
 
 export type OfferCatalogEntry = {

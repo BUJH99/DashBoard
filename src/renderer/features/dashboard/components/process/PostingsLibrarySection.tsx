@@ -1,4 +1,5 @@
 import { Plus, Search } from "lucide-react";
+import { GlassSelect } from "../../../../components/ui/GlassSelect";
 import { ScrollArea } from "../../../../components/ui/ScrollArea";
 import { Pill, SurfaceCard } from "../../../../components/ui/primitives";
 import { cn } from "../../../../lib/cn";
@@ -42,18 +43,17 @@ export function PostingsLibrarySection({
             placeholder="기업명, 직무명, 키워드 검색"
           />
         </label>
-        <select
+        <GlassSelect
+          ariaLabel="채용공고 기업 필터"
           value={postings.postingCompanyFilter}
-          onChange={(event) => postings.setPostingCompanyFilter(event.target.value)}
-          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-cyan-300"
-        >
-          <option value="all">전체 기업</option>
-          {postings.companyOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+          onChange={postings.setPostingCompanyFilter}
+          options={[
+            { value: "all", label: "전체 기업" },
+            ...postings.companyOptions,
+          ]}
+          tone="cyan"
+          size="sm"
+        />
       </div>
 
       <ScrollArea className="h-[620px] px-3 pb-3">

@@ -1,7 +1,11 @@
 import type { DashboardController } from "../useDashboardController";
+import { buildCoverLetterMarkdown } from "../../coverLetters/utils";
 import { CalendarBoardSection } from "./calendar/CalendarBoardSection";
 import { CalendarScheduleSection } from "./calendar/CalendarScheduleSection";
-import { CoverLetterEditorSection } from "./coverLetters/CoverLetterEditorSection";
+import {
+  CoverLetterDraftSection,
+  CoverLetterPresetSection,
+} from "./coverLetters/CoverLetterEditorSection";
 import { CoverLetterFileListSection } from "./coverLetters/CoverLetterFileListSection";
 import { CoverLetterPreviewSection } from "./coverLetters/CoverLetterPreviewSection";
 import { EssayLinkSection } from "./interview/EssayLinkSection";
@@ -30,12 +34,24 @@ export function CalendarTab({ controller }: { controller: DashboardController })
 }
 
 export function CoverLettersTab({ controller }: { controller: DashboardController }) {
+  const previewContent = buildCoverLetterMarkdown(
+    controller.coverLetters.coverLetterDraft.meta.title,
+    controller.coverLetters.coverLetterDraft.questionItems,
+  );
+
   return (
-    <div className="grid min-h-[760px] gap-5 xl:grid-cols-[0.32fr_0.68fr]">
-      <CoverLetterFileListSection coverLetters={controller.coverLetters} />
-      <div className="grid gap-6">
-        <CoverLetterEditorSection coverLetters={controller.coverLetters} />
-        <CoverLetterPreviewSection content={controller.coverLetters.coverLetterDraft.content} />
+    <div className="grid min-h-[980px] gap-6 xl:grid-cols-[0.44fr_0.56fr] xl:grid-rows-[720px_auto]">
+      <div className="xl:col-start-1 xl:row-start-1">
+        <CoverLetterFileListSection coverLetters={controller.coverLetters} />
+      </div>
+      <div className="xl:col-start-2 xl:row-start-1">
+        <CoverLetterPresetSection coverLetters={controller.coverLetters} />
+      </div>
+      <div className="xl:col-start-1 xl:row-start-2">
+        <CoverLetterDraftSection coverLetters={controller.coverLetters} />
+      </div>
+      <div className="xl:col-start-2 xl:row-start-2">
+        <CoverLetterPreviewSection content={previewContent} />
       </div>
     </div>
   );

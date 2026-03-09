@@ -1,4 +1,5 @@
 import { Link2, Save, Trash2 } from "lucide-react";
+import { GlassSelect } from "../../../../components/ui/GlassSelect";
 import { Pill, SurfaceCard } from "../../../../components/ui/primitives";
 import type { DashboardController } from "../../useDashboardController";
 
@@ -91,39 +92,36 @@ export function PostingEditorSection({
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <label className="grid gap-1 text-sm">
             <span className="font-semibold text-slate-700">기업</span>
-            <select
-              value={selectedPosting.targetCompanyId}
-              onChange={(event) =>
+            <GlassSelect
+              ariaLabel="공고 기업 선택"
+              value={String(selectedPosting.targetCompanyId)}
+              options={postings.companyOptions}
+              onChange={(value) =>
                 postings.updatePosting(selectedPosting.id, {
-                  targetCompanyId: Number(event.target.value),
+                  targetCompanyId: Number(value),
                 })
               }
-              className="rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-300"
-            >
-              {postings.companyOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              tone="cyan"
+              size="sm"
+            />
           </label>
           <label className="grid gap-1 text-sm">
             <span className="font-semibold text-slate-700">전형 단계</span>
-            <select
+            <GlassSelect
+              ariaLabel="공고 전형 단계 선택"
               value={selectedPosting.stage}
-              onChange={(event) =>
+              onChange={(value) =>
                 postings.updatePosting(selectedPosting.id, {
-                  stage: event.target.value,
+                  stage: value,
                 })
               }
-              className="rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-300"
-            >
-              {postings.stageOptions.map((stage) => (
-                <option key={stage} value={stage}>
-                  {stage}
-                </option>
-              ))}
-            </select>
+              options={postings.stageOptions.map((stage) => ({
+                value: stage,
+                label: stage,
+              }))}
+              tone="amber"
+              size="sm"
+            />
           </label>
           <label className="grid gap-1 text-sm">
             <span className="font-semibold text-slate-700">공고 제목</span>

@@ -26,20 +26,29 @@ function NavItem({
       type="button"
       onClick={onClick}
       className={cn(
-        "mx-2 flex items-center rounded-2xl border border-transparent px-3 py-2 text-left text-[13px] transition-all duration-300",
-        expanded ? "w-[calc(100%-16px)] justify-start gap-3" : "w-[48px] justify-center",
+        "flex items-center rounded-2xl border border-transparent text-left transition-all duration-300",
+        expanded
+          ? "mx-2 w-[calc(100%-16px)] justify-start gap-3 px-3.5 py-2.5"
+          : "mx-auto h-12 w-12 justify-center px-0 py-0",
         isActive
           ? "border-slate-900/15 bg-[linear-gradient(135deg,_rgba(7,18,46,0.98),_rgba(10,24,58,0.94))] text-white shadow-[0_14px_28px_rgba(2,6,23,0.18)]"
-          : "text-slate-500 hover:border-slate-200 hover:bg-white/60 hover:text-slate-900",
+          : "text-slate-700 hover:border-slate-200 hover:bg-white/60 hover:text-slate-950",
       )}
       title={label}
     >
-      <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-white" : "text-slate-500")} />
       <span
         className={cn(
-          "overflow-hidden whitespace-nowrap font-medium transition-all duration-300",
+          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors duration-300",
+          isActive ? "text-white" : "text-slate-600",
+        )}
+      >
+        <Icon className="h-[18px] w-[18px] stroke-[2.1]" />
+      </span>
+      <span
+        className={cn(
+          "overflow-hidden whitespace-nowrap text-[14px] font-semibold tracking-[-0.02em] transition-all duration-300",
           expanded ? "max-w-[180px] opacity-100" : "max-w-0 opacity-0",
-          isActive && "font-semibold",
+          isActive && "font-black",
         )}
       >
         {label}
@@ -81,7 +90,7 @@ export function AppShell({
         onMouseEnter={() => setIsSidebarExpanded(true)}
         onMouseLeave={() => setIsSidebarExpanded(false)}
         className={cn(
-          "sticky top-0 flex h-screen shrink-0 flex-col bg-transparent px-3 py-3 text-slate-300 transition-[width] duration-300 ease-out",
+          "career-sidebar sticky top-0 flex h-screen shrink-0 flex-col bg-transparent px-3 py-3 text-slate-300 transition-[width] duration-300 ease-out",
           isSidebarExpanded ? "w-[292px]" : "w-[92px]",
         )}
       >
@@ -101,8 +110,8 @@ export function AppShell({
                 isSidebarExpanded ? "max-w-[170px] opacity-100" : "max-w-0 opacity-0",
               )}
             >
-              <p className="text-[14px] font-bold tracking-wide text-slate-900">{shellCopy.brandTitle}</p>
-              <p className="mt-1 text-[10px] uppercase tracking-[0.18em] text-slate-400">
+              <p className="text-[15px] font-black tracking-[-0.02em] text-slate-950">{shellCopy.brandTitle}</p>
+              <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
                 {shellCopy.brandSubtitle}
               </p>
             </div>
@@ -124,7 +133,7 @@ export function AppShell({
             >
               <div
                 className={cn(
-                  "overflow-hidden px-3 text-[9px] font-bold uppercase tracking-[0.22em] text-slate-400 transition-all duration-300",
+                  "overflow-hidden px-3 text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-500 transition-all duration-300",
                   isSidebarExpanded ? "max-h-6 pb-1 opacity-100" : "max-h-0 pb-0 opacity-0",
                 )}
               >
@@ -146,21 +155,28 @@ export function AppShell({
         <div
           className={cn(
             "mt-3 rounded-[28px] border border-white/60 bg-[linear-gradient(180deg,_rgba(255,255,255,0.6),_rgba(255,255,255,0.38))] shadow-[0_22px_44px_rgba(148,163,184,0.16)] backdrop-blur-[28px] transition-all duration-300",
-            isSidebarExpanded ? "px-4 py-4" : "px-3 py-4",
+            isSidebarExpanded ? "px-4 py-4" : "px-3 py-2.5",
           )}
         >
           <div className={cn("flex items-center", isSidebarExpanded ? "gap-3" : "justify-center")}>
-            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-sm font-bold text-white">
+            <div
+              className={cn(
+                "flex items-center justify-center rounded-full border border-slate-700 bg-slate-800 font-bold text-white",
+                isSidebarExpanded ? "h-10 w-10 text-sm" : "h-9 w-9 text-[13px]",
+              )}
+            >
               HW
             </div>
             <div
               className={cn(
                 "overflow-hidden transition-all duration-300",
-                isSidebarExpanded ? "max-w-[150px] opacity-100" : "max-w-0 opacity-0",
+                isSidebarExpanded
+                  ? "max-h-10 max-w-[150px] opacity-100"
+                  : "max-h-0 max-w-0 opacity-0",
               )}
             >
-              <p className="text-[13px] font-semibold text-slate-900">{shellCopy.workspaceTitle}</p>
-              <p className="text-[10px] text-slate-500">{shellCopy.workspaceSubtitle}</p>
+              <p className="text-[14px] font-black tracking-[-0.02em] text-slate-950">{shellCopy.workspaceTitle}</p>
+              <p className="text-[10px] font-medium tracking-[0.01em] text-slate-500">{shellCopy.workspaceSubtitle}</p>
             </div>
           </div>
         </div>

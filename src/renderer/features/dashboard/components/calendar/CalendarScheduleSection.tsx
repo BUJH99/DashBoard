@@ -4,6 +4,7 @@ import {
   Save,
   Trash2,
 } from "lucide-react";
+import { GlassSelect } from "../../../../components/ui/GlassSelect";
 import { cn } from "../../../../lib/cn";
 import { Pill, SurfaceCard } from "../../../../components/ui/primitives";
 import type { DashboardController } from "../../useDashboardController";
@@ -85,39 +86,33 @@ export function CalendarScheduleSection({
             </label>
             <label className="grid gap-1 text-sm">
               <span className="font-semibold text-slate-700">기업</span>
-              <select
+              <GlassSelect
+                ariaLabel="캘린더 일정 기업 선택"
                 value={selectedScheduleEvent.company}
-                onChange={(event) =>
+                onChange={(value) =>
                   calendar.updateScheduleEvent(selectedScheduleEvent.id, {
-                    company: event.target.value,
+                    company: value,
                   })
                 }
-                className="rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-300"
-              >
-                {calendar.companyOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                options={calendar.companyOptions}
+                tone="blue"
+                size="sm"
+              />
             </label>
             <label className="grid gap-1 text-sm">
               <span className="font-semibold text-slate-700">일정 유형</span>
-              <select
+              <GlassSelect
+                ariaLabel="캘린더 일정 유형 선택"
                 value={selectedScheduleEvent.type}
-                onChange={(event) =>
+                onChange={(value) =>
                   calendar.updateScheduleEvent(selectedScheduleEvent.id, {
-                    type: event.target.value as typeof selectedScheduleEvent.type,
+                    type: value as typeof selectedScheduleEvent.type,
                   })
                 }
-                className="rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-300"
-              >
-                {calendar.eventTypeOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                options={calendar.eventTypeOptions}
+                tone="amber"
+                size="sm"
+              />
             </label>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="grid gap-1 text-sm">

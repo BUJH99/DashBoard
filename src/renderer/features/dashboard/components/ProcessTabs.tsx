@@ -1,5 +1,4 @@
 import type { DashboardController } from "../useDashboardController";
-import { CompanyNotesSection } from "./process/CompanyNotesSection";
 import { CompanyOverviewSection } from "./process/CompanyOverviewSection";
 import { CompanyPostingFilterSection } from "./process/CompanyPostingFilterSection";
 import { JdInputSection } from "./process/JdInputSection";
@@ -45,21 +44,9 @@ export function PostingsTab({ controller }: { controller: DashboardController })
 
 export function CompanyTab({ controller }: { controller: DashboardController }) {
   return (
-    <div className="grid min-h-[720px] gap-6 xl:grid-cols-[0.34fr_0.66fr]">
+    <div className="grid min-h-[840px] gap-6 xl:grid-cols-[0.34fr_0.66fr]">
       <CompanyPostingFilterSection companies={controller.companies} />
-      <div className="grid gap-6">
-        <CompanyOverviewSection companies={controller.companies} />
-        <div className="grid gap-6 xl:grid-cols-2">
-          <PostingCardsSection
-            title="관련 공고"
-            postings={controller.companies.relatedPostings}
-            badgeMode="deadline"
-            selectedPostingId={controller.companies.selectedJobPosting.id}
-            onSelectPosting={controller.companies.setSelectedPostingId}
-          />
-          <CompanyNotesSection companies={controller.companies} />
-        </div>
-      </div>
+      <CompanyOverviewSection companies={controller.companies} />
     </div>
   );
 }

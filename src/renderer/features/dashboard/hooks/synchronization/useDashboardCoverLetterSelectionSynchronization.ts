@@ -30,20 +30,4 @@ export function useDashboardCoverLetterSelectionSynchronization({
     setDashboardState,
     workspaceSelectedCoverLetterName,
   ]);
-
-  useEffect(() => {
-    if (!dashboardState.ui.selectedCoverLetterName) {
-      return;
-    }
-
-    if (dashboardState.ui.selectedCoverLetterName === workspaceSelectedCoverLetterName) {
-      return;
-    }
-
-    setWorkspaceSelectedCoverLetterName(dashboardState.ui.selectedCoverLetterName);
-  }, [
-    dashboardState.ui.selectedCoverLetterName,
-    setWorkspaceSelectedCoverLetterName,
-    workspaceSelectedCoverLetterName,
-  ]);
 }

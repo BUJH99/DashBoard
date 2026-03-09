@@ -4,7 +4,11 @@ import type {
   CoverLetterSaveResponse,
 } from "../../../../../shared/cover-letter-contracts";
 import type { CoverLetterDraft, CoverLetterRecord } from "../../dashboard/types";
-import { getIsoNow } from "../utils";
+import {
+  buildCoverLetterMarkdown,
+  getIsoNow,
+  parseCoverLetterQuestions,
+} from "../utils";
 
 function normalizeTags(tags: unknown) {
   return Array.isArray(tags) ? tags.join(", ") : "";
@@ -27,6 +31,9 @@ export function resolveNextCoverLetterName(
 }
 
 export function buildCoverLetterDraftFromReadResult(payload: CoverLetterReadResult): CoverLetterDraft {
+  const title = String(payload.meta.title ?? payload.file.title ?? "");
+  const questionItems = parseCoverLetterQuestions(payload.content);
+
   return {
     originalName: payload.file.name,
     meta: {
@@ -37,11 +44,12 @@ export function buildCoverLetterDraftFromReadResult(payload: CoverLetterReadResu
       jobTrack: String(payload.meta.jobTrack ?? ""),
       docType: String(payload.meta.docType ?? "cover-letter"),
       updatedAt: String(payload.meta.updatedAt ?? getIsoNow()),
-      title: String(payload.meta.title ?? payload.file.title ?? ""),
+      title,
       status: String(payload.meta.status ?? payload.file.status ?? "draft"),
       tags: normalizeTags(payload.meta.tags),
     },
-    content: payload.content,
+    questionItems,
+    content: buildCoverLetterMarkdown(title, questionItems),
   };
 }
 
@@ -56,30 +64,13 @@ export function buildCoverLetterSavePayload(draft: CoverLetterDraft): CoverLette
         .filter(Boolean),
       updatedAt: getIsoNow(),
     },
-    content: draft.content,
+    content: buildCoverLetterMarkdown(draft.meta.title, draft.questionItems),
   };
 }
 
 export function buildCoverLetterDraftFromSaveResponse(
   payload: CoverLetterSaveResponse,
-  currentDraft: CoverLetterDraft,
+  _currentDraft: CoverLetterDraft,
 ): CoverLetterDraft {
-  return {
-    originalName: payload.detail.file.name,
-    meta: {
-      year: String(payload.detail.meta.year ?? currentDraft.meta.year),
-      companyId: String(payload.detail.meta.companyId ?? currentDraft.meta.companyId),
-      companyName: String(payload.detail.meta.companyName ?? currentDraft.meta.companyName),
-      companySlug: String(payload.detail.meta.companySlug ?? currentDraft.meta.companySlug),
-      jobTrack: String(payload.detail.meta.jobTrack ?? currentDraft.meta.jobTrack),
-      docType: String(payload.detail.meta.docType ?? currentDraft.meta.docType),
-      updatedAt: String(payload.detail.meta.updatedAt ?? getIsoNow()),
-      title: String(payload.detail.meta.title ?? currentDraft.meta.title),
-      status: String(payload.detail.meta.status ?? currentDraft.meta.status),
-      tags: Array.isArray(payload.detail.meta.tags)
-        ? payload.detail.meta.tags.join(", ")
-        : currentDraft.meta.tags,
-    },
-    content: payload.detail.content,
-  };
+  return buildCoverLetterDraftFromReadResult(payload.detail);
 }

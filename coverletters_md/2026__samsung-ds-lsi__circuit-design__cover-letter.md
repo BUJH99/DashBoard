@@ -5,7 +5,7 @@ companyName: 삼성전자 (DS/LSI)
 companySlug: samsung-ds-lsi
 jobTrack: circuit-design
 docType: cover-letter
-updatedAt: 2026-03-08T03:54:49.248Z
+updatedAt: 2026-03-09T17:09:18.280Z
 title: 삼성전자 DS 회로설계 자기소개서
 status: draft
 tags: rtl, system-lsi, portfolio

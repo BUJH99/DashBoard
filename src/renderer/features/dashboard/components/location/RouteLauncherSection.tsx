@@ -1,3 +1,4 @@
+import { ArrowUpRight, Navigation2 } from "lucide-react";
 import { cn } from "../../../../lib/cn";
 import { Pill, SurfaceCard } from "../../../../components/ui/primitives";
 import type { DashboardController } from "../../useDashboardController";
@@ -79,7 +80,7 @@ export function RouteLauncherSection({
       <div className="mt-4 flex flex-wrap gap-2">
         <button
           type="button"
-          onClick={() => {
+          onClick={async () => {
             const origin = location.routeOrigin.trim();
             const destination = location.routeDestination.trim();
             if (!origin || !destination) {
@@ -87,11 +88,26 @@ export function RouteLauncherSection({
               return;
             }
             setRouteSearchError(null);
-            location.openTransitDirections();
+            try {
+              await location.openTransitDirections();
+            } catch (error) {
+              setRouteSearchError(
+                error instanceof Error
+                  ? `네이버 지도를 열지 못했습니다. ${error.message}`
+                  : "네이버 지도를 열지 못했습니다.",
+              );
+            }
           }}
-          className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+          className="group relative overflow-hidden rounded-2xl bg-[linear-gradient(135deg,_rgba(15,23,42,1),_rgba(15,23,42,0.92),_rgba(8,47,73,0.96))] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(15,23,42,0.22)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_rgba(8,47,73,0.28)] active:translate-y-[1px] active:scale-[0.985]"
         >
-          네이버 지도 열기
+          <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_left_top,_rgba(103,232,249,0.32),_transparent_48%)] opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-active:opacity-70" />
+          <span className="relative flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-white/10 transition-transform duration-200 group-hover:scale-110 group-active:scale-95">
+              <Navigation2 className="h-3.5 w-3.5 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-active:translate-x-0" />
+            </span>
+            <span>네이버 지도 열기</span>
+            <ArrowUpRight className="h-4 w-4 opacity-70 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100 group-active:translate-x-0 group-active:translate-y-0" />
+          </span>
         </button>
         <button
           type="button"
@@ -111,6 +127,9 @@ export function RouteLauncherSection({
       ) : null}
       <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/60 p-4 text-sm text-slate-600">
         현재 목적지: <span className="font-semibold text-slate-800">{location.routeDestination}</span>
+        <div className="mt-2 break-all text-xs text-slate-500">
+          경로 URL: {location.transitDirectionsUrl}
+        </div>
       </div>
     </SurfaceCard>
   );

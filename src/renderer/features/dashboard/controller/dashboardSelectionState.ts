@@ -56,9 +56,61 @@ type BuildDashboardSelectionStateOptions = {
   offerCatalog: OfferCatalogEntry[];
   flashcardDeck: FlashcardItem[];
   selectedCompany: CompanyTarget;
+  companyTargets: CompanyTarget[];
   commuteNotesSeed: Record<number, CommuteNote>;
   originPresets: OriginPreset[];
 };
+
+function normalizePlaceName(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function resolveOriginMetadata(originPresets: OriginPreset[], origin: string) {
+  const normalizedOrigin = normalizePlaceName(origin);
+
+  return (
+    originPresets.find((item) => normalizePlaceName(item.value) === normalizedOrigin) ??
+    originPresets.find((item) => normalizePlaceName(item.label) === normalizedOrigin) ??
+    null
+  );
+}
+
+function resolveDestinationMetadata(
+  companyTargets: CompanyTarget[],
+  originPresets: OriginPreset[],
+  destination: string,
+) {
+  const normalizedDestination = normalizePlaceName(destination);
+  const matchedCompany =
+    companyTargets.find((company) => normalizePlaceName(company.name) === normalizedDestination) ??
+    null;
+
+  if (matchedCompany) {
+    return {
+      lat: matchedCompany.lat,
+      lng: matchedCompany.lng,
+      type: matchedCompany.naverPlaceType ?? "PLACE_POI",
+      placeId: matchedCompany.naverPlaceId ?? null,
+    };
+  }
+
+  const matchedOriginPreset = resolveOriginMetadata(originPresets, destination);
+  if (matchedOriginPreset) {
+    return {
+      lat: matchedOriginPreset.lat,
+      lng: matchedOriginPreset.lng,
+      type: matchedOriginPreset.type,
+      placeId: matchedOriginPreset.placeId ?? null,
+    };
+  }
+
+  return {
+    lat: null,
+    lng: null,
+    type: "ADDRESS_POI" as const,
+    placeId: null,
+  };
+}
 
 export function buildDashboardSelectionState({
   dashboardState,
@@ -68,6 +120,7 @@ export function buildDashboardSelectionState({
   offerCatalog,
   flashcardDeck,
   selectedCompany,
+  companyTargets,
   commuteNotesSeed,
   originPresets,
 }: BuildDashboardSelectionStateOptions) {
@@ -95,16 +148,25 @@ export function buildDashboardSelectionState({
       commuteNotesSeed[selectedCompany.id] ??
       buildEmptyCommuteNote(),
   );
-  const selectedOrigin =
-    originPresets.find((origin) => origin.value === dashboardState.location.routeOrigin) ?? null;
+  const routeOrigin = dashboardState.location.routeOrigin.trim();
+  const routeDestination = dashboardState.location.routeDestination.trim() || selectedCompany.name;
+  const selectedOrigin = resolveOriginMetadata(originPresets, routeOrigin);
+  const resolvedDestination = resolveDestinationMetadata(
+    companyTargets,
+    originPresets,
+    routeDestination,
+  );
   const transitDirectionsUrl = buildNaverTransitDirectionsUrl({
-    origin: dashboardState.location.routeOrigin,
+    origin: routeOrigin,
     originLat: selectedOrigin?.lat,
     originLng: selectedOrigin?.lng,
     originType: selectedOrigin?.type,
-    destination: selectedCompany.name,
-    destinationLat: selectedCompany.lat,
-    destinationLng: selectedCompany.lng,
+    originPlaceId: selectedOrigin?.placeId,
+    destination: routeDestination,
+    destinationLat: resolvedDestination.lat,
+    destinationLng: resolvedDestination.lng,
+    destinationType: resolvedDestination.type,
+    destinationPlaceId: resolvedDestination.placeId,
   });
 
   return {

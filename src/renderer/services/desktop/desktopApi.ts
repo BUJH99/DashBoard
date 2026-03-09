@@ -1,5 +1,5 @@
 import type { DesktopApi } from "../../../../shared/desktop-api-contracts";
 
-export function getDesktopApi(): DesktopApi {
+export function getDesktopApi(): DesktopApi | null {
   return window.desktopAPI;
 }

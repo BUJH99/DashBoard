@@ -1,7 +1,13 @@
 import { useMemo, useState } from "react";
 import { buildDefaultDashboardState } from "../../../../shared/dashboard-state";
 import { useCoverLetterWorkspace } from "../coverLetters/hooks/useCoverLetterWorkspace";
-import { coverLetterSlugify } from "../coverLetters/utils";
+import {
+  buildCoverLetterMarkdown,
+  buildCoverLetterQuestionsFromPrompts,
+  buildDefaultCoverLetterQuestionPrompts,
+  coverLetterSlugify,
+} from "../coverLetters/utils";
+import { fillDraftFromSelectedCompany } from "../coverLetters/workspace/coverLetterWorkspaceState";
 import { useJdScanner } from "../jdScanner/hooks/useJdScanner";
 import {
   CALENDAR_MONTH_INDEX,
@@ -30,6 +36,13 @@ import {
   enrichPostings,
   getChecklistItems,
 } from "./domain/dashboardSelectors";
+import {
+  buildCompanyComparisonRows,
+  buildDefaultCompanyAnalysisEntry,
+  buildOfferCatalogFromCompanyAnalysis,
+  buildResolvedCompanyAnalysisEntries,
+  resolveComparisonCompany,
+} from "./domain/companyAnalysisSelectors";
 import { buildCompanyTargetsFromPostings } from "./domain/companyTargetSelectors";
 import {
   createDashboardActions,
@@ -63,10 +76,38 @@ export function useDashboardController() {
     () => buildCompanyTargetsFromPostings(companyTargets, postings),
     [postings],
   );
+  const resolvedCompanyAnalysisEntries = useMemo(
+    () =>
+      buildResolvedCompanyAnalysisEntries({
+        companyTargets: resolvedCompanyTargets,
+        companyDetails,
+        offerCatalog,
+        storedEntries: dashboardState.companyAnalysis.entries,
+      }),
+    [dashboardState.companyAnalysis.entries, resolvedCompanyTargets],
+  );
+  const resolvedOfferCatalog = useMemo(
+    () => buildOfferCatalogFromCompanyAnalysis(offerCatalog, resolvedCompanyAnalysisEntries),
+    [resolvedCompanyAnalysisEntries],
+  );
 
   const checklistTemplates = useMemo(
     () => buildChecklistTemplates(postings),
     [postings],
+  );
+  const defaultCoverLetterQuestionPrompts = useMemo(
+    () => buildDefaultCoverLetterQuestionPrompts(),
+    [],
+  );
+  const selectedCompanyQuestionPrompts = useMemo(
+    () =>
+      dashboardState.coverLetters.questionPresets[dashboardState.ui.selectedCompanyId] ??
+      defaultCoverLetterQuestionPrompts,
+    [
+      dashboardState.coverLetters.questionPresets,
+      dashboardState.ui.selectedCompanyId,
+      defaultCoverLetterQuestionPrompts,
+    ],
   );
 
   const {
@@ -96,6 +137,8 @@ export function useDashboardController() {
     selectedCompany: snapshotCompany,
     selectedCompanyPosting: snapshotCompanyPosting,
     selectedCompanySlug: snapshotCompanySlug,
+    selectedCompanyQuestionPrompts,
+    initialSelectedCoverLetterName: dashboardState.ui.selectedCoverLetterName,
   });
 
   const {
@@ -113,6 +156,21 @@ export function useDashboardController() {
     companySlugMap,
     coverLetterSlugify,
   });
+  const selectedCompanyAnalysis =
+    resolvedCompanyAnalysisEntries[selectedCompany.id] ??
+    buildDefaultCompanyAnalysisEntry(selectedCompany, selectedCompanyDetail, offerCatalog);
+  const comparisonCompany = resolveComparisonCompany({
+    companyTargets: resolvedCompanyTargets,
+    selectedCompanyId: selectedCompany.id,
+    compareCompanyId: dashboardState.companyAnalysis.compareCompanyId,
+  });
+  const comparisonCompanyAnalysis =
+    resolvedCompanyAnalysisEntries[comparisonCompany.id] ??
+    buildDefaultCompanyAnalysisEntry(comparisonCompany, companyDetails[comparisonCompany.id] ?? selectedCompanyDetail, offerCatalog);
+  const companyComparisonRows = buildCompanyComparisonRows(
+    selectedCompanyAnalysis,
+    comparisonCompanyAnalysis,
+  );
 
   const selectedCompanyPosting =
     relatedPostings.find((posting) => posting.id === dashboardState.ui.selectedJobPostingId) ??
@@ -136,7 +194,7 @@ export function useDashboardController() {
     companyTargets: resolvedCompanyTargets,
     essayQuestions,
     schedule: scheduleEntries,
-    offerCatalog,
+    offerCatalog: resolvedOfferCatalog,
     fallbackOfferA: FALLBACK_OFFER_A,
     fallbackOfferB: FALLBACK_OFFER_B,
     dashboardStateSyncMessage: dashboardStateSync.message,
@@ -191,13 +249,14 @@ export function useDashboardController() {
         postings,
         schedule: scheduleEntries,
         essayQuestions,
-        offerCatalog,
+        offerCatalog: resolvedOfferCatalog,
         flashcardDeck,
         selectedCompany,
+        companyTargets: resolvedCompanyTargets,
         commuteNotesSeed,
         originPresets,
       }),
-    [dashboardState, flashcardDeck, postings, scheduleEntries, selectedCompany],
+    [dashboardState, flashcardDeck, postings, resolvedOfferCatalog, scheduleEntries, selectedCompany],
   );
 
   const checklistItems = getChecklistItems(
@@ -240,7 +299,110 @@ export function useDashboardController() {
     ],
   );
 
-  return buildDashboardViewModel({
+  const coverLetterCompanyOptions = useMemo(
+    () =>
+      resolvedCompanyTargets.map((company) => ({
+        value: String(company.id),
+        label: company.name,
+      })),
+    [resolvedCompanyTargets],
+  );
+  const companyQuestionPresets =
+    dashboardState.coverLetters.questionPresets[selectedCompany.id] ??
+    defaultCoverLetterQuestionPrompts;
+
+  const updateCompanyQuestionPreset = (index: number, value: string) => {
+    setDashboardState((current) => {
+      const currentPrompts =
+        current.coverLetters.questionPresets[selectedCompany.id] ??
+        defaultCoverLetterQuestionPrompts;
+
+      if (index < 0 || index >= currentPrompts.length) {
+        return current;
+      }
+
+      return {
+        ...current,
+        coverLetters: {
+          ...current.coverLetters,
+          questionPresets: {
+            ...current.coverLetters.questionPresets,
+            [selectedCompany.id]: currentPrompts.map((prompt, promptIndex) =>
+              promptIndex === index ? value : prompt,
+            ),
+          },
+        },
+      };
+    });
+  };
+
+  const addCompanyQuestionPreset = () => {
+    setDashboardState((current) => {
+      const currentPrompts =
+        current.coverLetters.questionPresets[selectedCompany.id] ??
+        defaultCoverLetterQuestionPrompts;
+      const nextPrompts = [...currentPrompts, `${selectedCompany.name} 문항 ${currentPrompts.length + 1}`];
+
+      return {
+        ...current,
+        coverLetters: {
+          ...current.coverLetters,
+          questionPresets: {
+            ...current.coverLetters.questionPresets,
+            [selectedCompany.id]: nextPrompts,
+          },
+        },
+      };
+    });
+  };
+
+  const removeCompanyQuestionPreset = (index: number) => {
+    setDashboardState((current) => {
+      const currentPrompts =
+        current.coverLetters.questionPresets[selectedCompany.id] ??
+        defaultCoverLetterQuestionPrompts;
+
+      if (currentPrompts.length <= 1 || index < 0 || index >= currentPrompts.length) {
+        return current;
+      }
+
+      return {
+        ...current,
+        coverLetters: {
+          ...current.coverLetters,
+          questionPresets: {
+            ...current.coverLetters.questionPresets,
+            [selectedCompany.id]: currentPrompts.filter((_, promptIndex) => promptIndex !== index),
+          },
+        },
+      };
+    });
+  };
+
+  const applyCompanyQuestionPresetsToDraft = () => {
+    coverLetterWorkspace.setCoverLetterDraft((current) => {
+      const nextDraft = fillDraftFromSelectedCompany(current, {
+        selectedCompanyId: selectedCompany.id,
+        selectedCompany,
+        selectedCompanyPosting,
+        selectedCompanySlug,
+      });
+      const nextQuestionItems = buildCoverLetterQuestionsFromPrompts(companyQuestionPresets).map(
+        (question, index) => ({
+          ...question,
+          answer: current.questionItems[index]?.answer ?? "",
+        }),
+      );
+
+      return {
+        ...nextDraft,
+        questionItems: nextQuestionItems,
+        content: buildCoverLetterMarkdown(nextDraft.meta.title, nextQuestionItems),
+      };
+    });
+  };
+
+  const controller = buildDashboardViewModel({
     dashboardState,
     dashboardStateMessage,
     saveDashboardState,
@@ -275,6 +437,113 @@ export function useDashboardController() {
     setJdScannerText,
     actions,
   });
+
+  const persistSelectedCompanyAnalysis = (
+    nextEntry: typeof selectedCompanyAnalysis,
+  ) => {
+    setDashboardState((current) => ({
+      ...current,
+      companyAnalysis: {
+        ...current.companyAnalysis,
+        entries: {
+          ...current.companyAnalysis.entries,
+          [selectedCompany.id]: {
+            description: nextEntry.description,
+            roleDescription: nextEntry.roleDescription,
+            techStack: [...nextEntry.techStack],
+            news: [...nextEntry.news],
+            comparison: {
+              ...nextEntry.comparison,
+            },
+          },
+        },
+      },
+    }));
+  };
+
+  const updateSelectedCompanyAnalysisField = (
+    field: "description" | "roleDescription",
+    value: string,
+  ) => {
+    persistSelectedCompanyAnalysis({
+      ...selectedCompanyAnalysis,
+      [field]: value,
+    });
+  };
+
+  const updateSelectedCompanyAnalysisList = (
+    field: "techStack" | "news",
+    value: string[],
+  ) => {
+    persistSelectedCompanyAnalysis({
+      ...selectedCompanyAnalysis,
+      [field]: value,
+    });
+  };
+
+  const updateSelectedCompanyComparisonMetric = (
+    field: keyof typeof selectedCompanyAnalysis.comparison,
+    value: string | number,
+  ) => {
+    persistSelectedCompanyAnalysis({
+      ...selectedCompanyAnalysis,
+      comparison: {
+        ...selectedCompanyAnalysis.comparison,
+        [field]:
+          typeof value === "number"
+            ? value
+            : value,
+      },
+    });
+  };
+
+  const setCompanyComparisonCompanyId = (companyId: number) => {
+    setDashboardState((current) => ({
+      ...current,
+      companyAnalysis: {
+        ...current.companyAnalysis,
+        compareCompanyId: companyId,
+      },
+    }));
+  };
+
+  return {
+    ...controller,
+    companies: {
+      ...controller.companies,
+      selectedCompanyAnalysis,
+      comparisonCompany,
+      comparisonCompanyAnalysis,
+      companyComparisonRows,
+      companyCompareOptions: resolvedCompanyTargets
+        .filter((company) => company.id !== selectedCompany.id)
+        .map((company) => ({
+          value: String(company.id),
+          label: company.name,
+        })),
+      companyCompareId: comparisonCompany.id,
+      setCompanyComparisonCompanyId,
+      updateSelectedCompanyAnalysisField,
+      updateSelectedCompanyAnalysisList,
+      updateSelectedCompanyComparisonMetric,
+    },
+    offer: {
+      ...controller.offer,
+      offerCatalog: resolvedOfferCatalog,
+    },
+    coverLetters: {
+      ...controller.coverLetters,
+      companyOptions: coverLetterCompanyOptions,
+      selectedCompanyId: selectedCompany.id,
+      selectedCompanyName: selectedCompany.name,
+      companyQuestionPresets,
+      setSelectedCompanyId: actions.updateSelectedCompanyId,
+      updateCompanyQuestionPreset,
+      addCompanyQuestionPreset,
+      removeCompanyQuestionPreset,
+      applyCompanyQuestionPresetsToDraft,
+    },
+  };
 }
 
 export type DashboardController = ReturnType<typeof useDashboardController>;

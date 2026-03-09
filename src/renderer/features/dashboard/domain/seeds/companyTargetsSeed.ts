@@ -12,6 +12,7 @@ export const companyTargets: CompanyTarget[] = [
     lat: 37.222,
     lng: 127.107,
     stage: "applied",
+    naverPlaceType: "PLACE_POI",
   },
   {
     id: 2,
@@ -24,6 +25,7 @@ export const companyTargets: CompanyTarget[] = [
     lat: 37.279,
     lng: 127.442,
     stage: "test",
+    naverPlaceType: "PLACE_POI",
   },
   {
     id: 3,
@@ -36,6 +38,7 @@ export const companyTargets: CompanyTarget[] = [
     lat: 37.484,
     lng: 127.035,
     stage: "interview1",
+    naverPlaceType: "PLACE_POI",
   },
   {
     id: 4,
@@ -48,6 +51,7 @@ export const companyTargets: CompanyTarget[] = [
     lat: 37.401,
     lng: 127.109,
     stage: "test",
+    naverPlaceType: "PLACE_POI",
   },
   {
     id: 5,
@@ -60,6 +64,7 @@ export const companyTargets: CompanyTarget[] = [
     lat: 37.394,
     lng: 127.112,
     stage: "interview2",
+    naverPlaceType: "PLACE_POI",
   },
   {
     id: 6,
@@ -72,5 +77,6 @@ export const companyTargets: CompanyTarget[] = [
     lat: 37.498,
     lng: 127.028,
     stage: "test",
+    naverPlaceType: "PLACE_POI",
   },
 ];

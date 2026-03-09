@@ -5,6 +5,8 @@ import type {
 } from "./dashboard-state-service-contracts.js";
 import type {
   CoverLetterConfig,
+  CoverLetterDeletePayload,
+  CoverLetterDeleteResponse,
   CoverLetterListResponse,
   CoverLetterReadResult,
   CoverLetterSavePayload,
@@ -17,6 +19,7 @@ export type DesktopApi = {
     list(): Promise<CoverLetterListResponse>;
     read(name: string): Promise<CoverLetterReadResult>;
     save(payload: CoverLetterSavePayload): Promise<CoverLetterSaveResponse>;
+    remove(payload: CoverLetterDeletePayload): Promise<CoverLetterDeleteResponse>;
   };
   dashboardState: {
     read(): Promise<DashboardStateReadResponse>;

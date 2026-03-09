@@ -1,4 +1,5 @@
 import type { DashboardLocalState } from "./dashboard-state-contracts.js";
+import { DEFAULT_DASHBOARD_COVERLETTER_PRESETS } from "./dashboard-cover-letter-presets.js";
 import {
   DEFAULT_DASHBOARD_JOB_POSTINGS,
   DEFAULT_DASHBOARD_SCHEDULE_ENTRIES,
@@ -57,6 +58,36 @@ function isPostingEntry(value: unknown): value is DashboardLocalState["postings"
   );
 }
 
+function isCompanyAnalysisComparisonProfile(
+  value: unknown,
+): value is DashboardLocalState["companyAnalysis"]["entries"][number]["comparison"] {
+  return (
+    isRecord(value) &&
+    typeof value.salary === "number" &&
+    typeof value.growth === "number" &&
+    typeof value.wlb === "number" &&
+    typeof value.location === "number" &&
+    typeof value.culture === "number" &&
+    typeof value.base === "string" &&
+    typeof value.bonus === "string"
+  );
+}
+
+function isCompanyAnalysisEntry(
+  value: unknown,
+): value is DashboardLocalState["companyAnalysis"]["entries"][number] {
+  return (
+    isRecord(value) &&
+    typeof value.description === "string" &&
+    typeof value.roleDescription === "string" &&
+    Array.isArray(value.techStack) &&
+    value.techStack.every((item) => typeof item === "string") &&
+    Array.isArray(value.news) &&
+    value.news.every((item) => typeof item === "string") &&
+    isCompanyAnalysisComparisonProfile(value.comparison)
+  );
+}
+
 export function buildDefaultDashboardState(): DashboardLocalState {
   return {
     ui: {
@@ -104,6 +135,18 @@ export function buildDefaultDashboardState(): DashboardLocalState {
       companyFilter: "all",
       taskChecked: {},
     },
+    companyAnalysis: {
+      compareCompanyId: 2,
+      entries: {},
+    },
+    coverLetters: {
+      questionPresets: Object.fromEntries(
+        Object.entries(DEFAULT_DASHBOARD_COVERLETTER_PRESETS).map(([companyId, prompts]) => [
+          Number(companyId),
+          [...prompts],
+        ]),
+      ),
+    },
   };
 }
 
@@ -121,6 +164,8 @@ export function hydrateDashboardState(payload: unknown): DashboardLocalState {
   const interview = mergeSection(defaults.interview, payload.interview);
   const jdScanner = mergeSection(defaults.jdScanner, payload.jdScanner);
   const overview = mergeSection(defaults.overview, payload.overview);
+  const companyAnalysis = mergeSection(defaults.companyAnalysis, payload.companyAnalysis);
+  const coverLetters = mergeSection(defaults.coverLetters, payload.coverLetters);
 
   return {
     ui: {
@@ -177,6 +222,33 @@ export function hydrateDashboardState(payload: unknown): DashboardLocalState {
       taskChecked: isRecord(overview.taskChecked)
         ? (overview.taskChecked as DashboardLocalState["overview"]["taskChecked"])
         : defaults.overview.taskChecked,
+    },
+    companyAnalysis: {
+      ...companyAnalysis,
+      compareCompanyId:
+        typeof companyAnalysis.compareCompanyId === "number"
+          ? companyAnalysis.compareCompanyId
+          : defaults.companyAnalysis.compareCompanyId,
+      entries: isRecord(companyAnalysis.entries)
+        ? Object.fromEntries(
+            Object.entries(companyAnalysis.entries)
+              .map(([companyId, entry]) => [Number(companyId), entry] as const)
+              .filter(([, entry]) => isCompanyAnalysisEntry(entry)),
+          )
+        : defaults.companyAnalysis.entries,
+    },
+    coverLetters: {
+      ...coverLetters,
+      questionPresets: isRecord(coverLetters.questionPresets)
+        ? Object.fromEntries(
+            Object.entries(coverLetters.questionPresets).map(([companyId, prompts]) => [
+              Number(companyId),
+              Array.isArray(prompts)
+                ? prompts.filter((prompt): prompt is string => typeof prompt === "string")
+                : [],
+            ]),
+          )
+        : defaults.coverLetters.questionPresets,
     },
   };
 }

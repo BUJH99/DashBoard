@@ -10,7 +10,7 @@ import { OfferRadarSection } from "./offer/OfferRadarSection";
 
 export function OfferTab({ controller }: { controller: DashboardController }) {
   return (
-    <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+    <div className="grid gap-6">
       <OfferRadarSection offer={controller.offer} />
       <OfferNotesSection offers={[controller.offer.selectedOfferA, controller.offer.selectedOfferB]} />
     </div>

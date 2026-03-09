@@ -2,8 +2,83 @@ import type {
   CompanyTarget,
   CoverLetterDraft,
   CoverLetterDraftMeta,
+  CoverLetterQuestionItem,
   EnrichedPosting,
 } from "../dashboard/types";
+
+function createQuestionId() {
+  return `question-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+export function createCoverLetterQuestion(
+  prompt = "",
+  answer = "",
+): CoverLetterQuestionItem {
+  return {
+    id: createQuestionId(),
+    prompt,
+    answer,
+  };
+}
+
+export function buildDefaultCoverLetterQuestions() {
+  return buildCoverLetterQuestionsFromPrompts(buildDefaultCoverLetterQuestionPrompts());
+}
+
+export function buildDefaultCoverLetterQuestionPrompts() {
+  return [
+    "지원 동기를 작성해 주세요.",
+    "직무 관련 경험과 강점을 작성해 주세요.",
+    "입사 후 기여 계획과 포부를 작성해 주세요.",
+  ];
+}
+
+export function buildCoverLetterQuestionsFromPrompts(prompts: string[]) {
+  if (prompts.length === 0) {
+    return [createCoverLetterQuestion("문항 1")];
+  }
+
+  return prompts.map((prompt) => createCoverLetterQuestion(prompt));
+}
+
+export function parseCoverLetterQuestions(content: string) {
+  const normalized = content.replace(/\r\n/g, "\n").trim();
+  if (!normalized) {
+    return buildDefaultCoverLetterQuestions();
+  }
+
+  const bodyWithoutTitle = normalized.replace(/^# .+\n*/, "").trim();
+  const sectionMatches = [...bodyWithoutTitle.matchAll(/^##\s+(.+)$/gm)];
+
+  if (sectionMatches.length === 0) {
+    return [createCoverLetterQuestion("문항 1", bodyWithoutTitle)];
+  }
+
+  return sectionMatches.map((match, index) => {
+    const prompt = match[1].trim();
+    const answerStart = match.index! + match[0].length;
+    const answerEnd =
+      index < sectionMatches.length - 1 ? sectionMatches[index + 1].index! : bodyWithoutTitle.length;
+    const answer = bodyWithoutTitle.slice(answerStart, answerEnd).trim();
+
+    return createCoverLetterQuestion(prompt, answer);
+  });
+}
+
+export function buildCoverLetterMarkdown(
+  title: string,
+  questionItems: CoverLetterQuestionItem[],
+) {
+  const safeTitle = title.trim() || "자기소개서";
+  const sections = questionItems.map((item, index) => {
+    const prompt = item.prompt.trim() || `문항 ${index + 1}`;
+    const answer = item.answer.trim();
+
+    return `## ${prompt}\n\n${answer}`;
+  });
+
+  return [`# ${safeTitle}`, ...sections].join("\n\n").trimEnd() + "\n";
+}
 
 export function coverLetterSlugify(value: string) {
   return value
@@ -25,12 +100,17 @@ export function buildEmptyCoverLetterDraft(
   company?: CompanyTarget,
   posting?: EnrichedPosting,
   companySlug?: string,
+  questionPrompts?: string[],
 ): CoverLetterDraft {
   const companyName = company?.name ?? "";
   const companyId = company ? String(company.id) : "";
   const safeCompanySlug = companySlug ?? (company ? coverLetterSlugify(company.name) : "");
   const title = company ? `${company.name} 자기소개서 초안` : "새 자기소개서 초안";
   const jobTrack = posting?.role ? coverLetterSlugify(posting.role) : "cover-letter";
+  const questionItems =
+    questionPrompts && questionPrompts.length > 0
+      ? buildCoverLetterQuestionsFromPrompts(questionPrompts)
+      : buildDefaultCoverLetterQuestions();
 
   return {
     originalName: null,
@@ -46,16 +126,7 @@ export function buildEmptyCoverLetterDraft(
       status: "draft",
       tags: "",
     },
-    content: `# ${title}
-
-## 지원 동기
-회사와 직무를 선택한 이유를 구체적으로 정리합니다.
-
-## 관련 경험
-직무와 가장 직접적으로 연결되는 프로젝트, 수업, 인턴, 업무 경험을 정리합니다.
-
-## 마무리
-입사 후 기여 방안과 성장 방향을 간단히 정리합니다.
-`,
+    questionItems,
+    content: buildCoverLetterMarkdown(title, questionItems),
   };
 }

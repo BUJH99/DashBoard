@@ -11,9 +11,16 @@ export type CoverLetterDraftMeta = {
   tags: string;
 };
 
+export type CoverLetterQuestionItem = {
+  id: string;
+  prompt: string;
+  answer: string;
+};
+
 export type CoverLetterDraft = {
   originalName: string | null;
   meta: CoverLetterDraftMeta;
+  questionItems: CoverLetterQuestionItem[];
   content: string;
 };
 
