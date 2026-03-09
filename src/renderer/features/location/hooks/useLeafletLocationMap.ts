@@ -9,6 +9,8 @@ type UseLeafletLocationMapOptions = {
   onSelectCompany: (id: number) => void;
 };
 
+type LeafletContainer = HTMLDivElement & { _leaflet_id?: number };
+
 export function useLeafletLocationMap({
   containerRef,
   companies,
@@ -29,8 +31,9 @@ export function useLeafletLocationMap({
       return;
     }
 
-    if ((container as L.DomUtil & { _leaflet_id?: number })._leaflet_id) {
-      (container as L.DomUtil & { _leaflet_id?: number })._leaflet_id = undefined;
+    const leafletContainer = container as LeafletContainer;
+    if (leafletContainer._leaflet_id) {
+      leafletContainer._leaflet_id = undefined;
     }
 
     const map = L.map(container, {
@@ -93,11 +96,8 @@ export function useLeafletLocationMap({
     }
 
     const buildMarkerIcon = (company: CompanyTarget, selected: boolean) => {
-      const color = company.location.includes("?쒖슱")
-        ? "#3b82f6"
-        : company.location.includes("寃쎄린")
-          ? "#10b981"
-          : "#f59e0b";
+      const colors = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
+      const color = colors[company.id % colors.length];
       const size = selected ? 18 : 14;
       const ring = selected ? 5 : 4;
       return L.divIcon({

@@ -21,7 +21,7 @@ export type {
   PortfolioSubTab,
 };
 
-export type CompanyStrategyType = "吏묒쨷怨듬왂" | "?곹뼢吏?? | "?덉젙吏??;
+export type CompanyStrategyType = string;
 
 export type CompanyPipelineStage =
   | "preparing"
@@ -32,19 +32,7 @@ export type CompanyPipelineStage =
   | "passed"
   | "rejected";
 
-export type PostingStage =
-  | "愿?ш린??"
-  | "怨듦퀬?뺤씤"
-  | "湲곗뾽遺꾩꽍?꾨즺"
-  | "吏곷Т遺꾩꽍?꾨즺"
-  | "?먯냼?쒖옉?깆쨷"
-  | "?쒖텧?꾨즺"
-  | "?몄쟻??怨쇱젣?湲?"
-  | "硫댁젒?湲?"
-  | "理쒖쥌寃곌낵?湲?"
-  | "?⑷꺽"
-  | "遺덊빀寃?"
-  | "蹂대쪟";
+export type PostingStage = string;
 
 export type JdScanPhase = "idle" | "loading" | "result";
 
@@ -186,7 +174,7 @@ export type EssayQuestion = {
   type: string;
   question: string;
   limit: number;
-  status: "珥덉븞?꾨즺" | "?섏젙以?" | "誘몄옉??";
+  status: string;
   draft: string;
   linkedExperienceIds: number[];
 };

@@ -31,15 +31,19 @@ export function LeafletLocationMap({
       {tileState === "error" ? (
         <div className="absolute inset-0 z-[450] flex items-center justify-center bg-slate-50/80 backdrop-blur-sm">
           <div className="rounded-2xl border border-rose-200 bg-white px-5 py-4 text-center shadow-sm">
-            <p className="text-sm font-semibold text-rose-700">吏?????濡쒕뱶 ?ㅽ뙣</p>
-            <p className="mt-2 text-xs text-slate-500">?ㅻⅨ履?紐⑸줉怨??곸꽭 ?⑤꼸? 怨꾩냽 ?ъ슜?????덉뒿?덈떎.</p>
+            <p className="text-sm font-semibold text-rose-700">Map tiles unavailable</p>
+            <p className="mt-2 text-xs text-slate-500">Check your network connection and try loading the map again.</p>
           </div>
         </div>
       ) : null}
-      <div ref={mapContainerRef} className="min-h-[360px] w-full" aria-label="?쒓뎅 ?꾩튂 ?몄궗?댄듃 吏?? />
+      <div
+        ref={mapContainerRef}
+        className="min-h-[360px] w-full"
+        aria-label="Company location map"
+      />
       <div className="absolute bottom-4 left-4 z-[500] flex flex-wrap gap-2">
-        <Pill className="border-slate-200 bg-white/90 text-slate-700">?쒖슱沅?</Pill>
-        <Pill className="border-slate-200 bg-white/90 text-slate-700">寃쎄린沅?</Pill>
+        <Pill className="border-slate-200 bg-white/90 text-slate-700">Route fit</Pill>
+        <Pill className="border-slate-200 bg-white/90 text-slate-700">Transit view</Pill>
         <Pill className="border-slate-200 bg-white/90 text-slate-700">OpenStreetMap</Pill>
       </div>
     </div>
