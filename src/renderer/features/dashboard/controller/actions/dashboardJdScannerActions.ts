@@ -8,7 +8,15 @@ export function createDashboardJdScannerActions({ setJdScan }: DashboardActionCo
     }));
   };
 
+  const resetJdAnalysis = () => {
+    setJdScan((current) => ({
+      ...current,
+      phase: "idle",
+    }));
+  };
+
   return {
     runJdAnalysis,
+    resetJdAnalysis,
   };
 }

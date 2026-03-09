@@ -271,6 +271,9 @@ export function buildPostingsViewModel({
 export function buildJdScannerViewModel({
   jdScan,
   jdResult,
+  selectedCompany,
+  selectedCompanyPosting,
+  selectedEssay,
   setJdScannerText,
   actions,
 }: BuildDashboardViewModelOptions) {
@@ -278,6 +281,12 @@ export function buildJdScannerViewModel({
     jdScan,
     setText: setJdScannerText,
     runJdAnalysis: actions.runJdAnalysis,
+    resetJdAnalysis: actions.resetJdAnalysis,
     result: jdResult,
+    selectedCompany,
+    selectedCompanyPosting,
+    selectedEssay,
+    experienceLibrary,
+    essayQuestions,
   };
 }

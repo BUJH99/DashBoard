@@ -497,6 +497,38 @@ export function useDashboardController() {
     });
   };
 
+  const saveCompanyComparisonProfile = (
+    companyId: number,
+    comparison: typeof selectedCompanyAnalysis.comparison,
+  ) => {
+    const baseEntry =
+      resolvedCompanyAnalysisEntries[companyId] ??
+      buildDefaultCompanyAnalysisEntry(
+        resolvedCompanyTargets.find((company) => company.id === companyId) ?? selectedCompany,
+        companyDetails[companyId] ?? selectedCompanyDetail,
+        offerCatalog,
+      );
+
+    setDashboardState((current) => ({
+      ...current,
+      companyAnalysis: {
+        ...current.companyAnalysis,
+        entries: {
+          ...current.companyAnalysis.entries,
+          [companyId]: {
+            description: baseEntry.description,
+            roleDescription: baseEntry.roleDescription,
+            techStack: [...baseEntry.techStack],
+            news: [...baseEntry.news],
+            comparison: {
+              ...comparison,
+            },
+          },
+        },
+      },
+    }));
+  };
+
   const setCompanyComparisonCompanyId = (companyId: number) => {
     setDashboardState((current) => ({
       ...current,
@@ -523,6 +555,7 @@ export function useDashboardController() {
         })),
       companyCompareId: comparisonCompany.id,
       setCompanyComparisonCompanyId,
+      saveCompanyComparisonProfile,
       updateSelectedCompanyAnalysisField,
       updateSelectedCompanyAnalysisList,
       updateSelectedCompanyComparisonMetric,

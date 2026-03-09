@@ -53,7 +53,7 @@ export function CompanyTab({ controller }: { controller: DashboardController }) 
 
 export function JdScannerTab({ controller }: { controller: DashboardController }) {
   return (
-    <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+    <div className="grid min-h-[760px] gap-6 xl:grid-cols-[1fr_1fr]">
       <JdInputSection jdScanner={controller.jdScanner} />
       <JdResultSection jdScanner={controller.jdScanner} />
     </div>
