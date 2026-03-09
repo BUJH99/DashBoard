@@ -1,12 +1,17 @@
 import { useMemo } from "react";
-import type { CompanyDetail, CompanyTarget, CoverLetterRecord, EnrichedPosting } from "../types";
+import type {
+  CompanyDetail,
+  CompanyTarget,
+  CoverLetterRecord,
+  EnrichedPosting,
+} from "../types";
 
 type UseSelectedCompanyModelOptions = {
   companies: CompanyTarget[];
   companyDetails: Record<number, CompanyDetail>;
   selectedCompanyId: number;
   postings: EnrichedPosting[];
-  coverLetterFiles: CoverLetterRecord[];
+  coverLetterFiles?: CoverLetterRecord[];
   companySlugMap: Record<number, string>;
   coverLetterSlugify: (value: string) => string;
 };
@@ -16,7 +21,7 @@ export function useSelectedCompanyModel({
   companyDetails,
   selectedCompanyId,
   postings,
-  coverLetterFiles,
+  coverLetterFiles = [],
   companySlugMap,
   coverLetterSlugify,
 }: UseSelectedCompanyModelOptions) {
@@ -28,10 +33,10 @@ export function useSelectedCompanyModel({
   const selectedCompanyDetail = useMemo(
     () =>
       companyDetails[selectedCompanyId] ?? {
-        description: "?대떦 湲곗뾽??????몃? 遺꾩꽍 ?곗씠?곕뒗 ?꾩쭅 蹂닿컯 以묒엯?덈떎.",
-        roleDescription: "?듭떖 吏곷Т ?곸꽭??以鍮?以묒씠硫? 梨꾩슜 怨듦퀬 湲곗? ?붽뎄 ??웾 以묒떖?쇰줈 ?뺣━ 媛?ν빀?덈떎.",
+        description: "선택한 기업의 상세 설명이 아직 정리되지 않았습니다.",
+        roleDescription: "직무 요구사항을 정리한 뒤 여기에 역할 설명을 연결할 수 있습니다.",
         techStack: ["Verilog", "SystemVerilog", "RTL Design"],
-        news: ["愿??理쒖떊 硫붾え瑜?異붽??섎㈃ ???곸뿭?????띾??댁쭛?덈떎."],
+        news: ["선택한 기업에 연결된 최신 메모가 아직 없습니다."],
       },
     [companyDetails, selectedCompanyId],
   );

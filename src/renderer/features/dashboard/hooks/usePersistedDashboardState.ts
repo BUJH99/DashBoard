@@ -43,7 +43,10 @@ export function usePersistedDashboardState({
       } catch (error) {
         setDashboardStateSync({
           phase: "error",
-          message: error instanceof Error ? error.message : "??쒕낫???곹깭 濡쒕뱶 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.",
+          message:
+            error instanceof Error
+              ? error.message
+              : "대시보드 상태를 불러오지 못했습니다.",
           lastSavedAt: null,
         });
       }
@@ -68,13 +71,16 @@ export function usePersistedDashboardState({
       const payload = await saveDashboardStateService(buildStateRef.current());
       setDashboardStateSync({
         phase: "idle",
-        message: "濡쒖뺄 ?곹깭 ??λ맖",
+        message: "대시보드 상태를 저장했습니다.",
         lastSavedAt: payload.savedAt,
       });
     } catch (error) {
       setDashboardStateSync((current) => ({
         phase: "error",
-        message: error instanceof Error ? error.message : "??쒕낫???곹깭 ???以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.",
+        message:
+          error instanceof Error
+            ? error.message
+            : "대시보드 상태 저장에 실패했습니다.",
         lastSavedAt: current.lastSavedAt,
       }));
     }
@@ -84,6 +90,5 @@ export function usePersistedDashboardState({
     dashboardStateSync,
     clearDashboardStateMessage,
     saveDashboardState,
-    setDashboardStateSync,
   };
 }

@@ -1,4 +1,4 @@
-import type { CoverLetterMeta, CoverLetterRecord } from "../../shared/desktop-contracts.js";
+import type { CoverLetterMeta, CoverLetterRecord } from "../../shared/cover-letter-contracts.js";
 import path from "node:path";
 import { requiredMetaKeys } from "./filePaths.cjs";
 

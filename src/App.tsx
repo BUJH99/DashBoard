@@ -1,5 +1,5 @@
-import HardwareCareerDashboardMerged from "../Dashboard_MERGED";
+import DashboardApp from "./renderer/features/dashboard/DashboardApp";
 
 export default function App() {
-  return <HardwareCareerDashboardMerged />;
+  return <DashboardApp />;
 }

@@ -15,18 +15,25 @@ export function analyzeJdText(
     .map((item) => item.label);
 
   const uniqueExtracted =
-    extracted.length > 0 ? Array.from(new Set(extracted)) : ["Verilog", "SystemVerilog", "AMBA AXI", "UVM", "FPGA"];
+    extracted.length > 0
+      ? Array.from(new Set(extracted))
+      : ["Verilog", "SystemVerilog", "AMBA AXI", "UVM", "FPGA"];
   const matched = uniqueExtracted.filter((keyword) => portfolioKeywordSet.has(normalizeKeyword(keyword)));
   const missing = uniqueExtracted.filter((keyword) => !matched.includes(keyword));
   const coverage = Math.round((matched.length / uniqueExtracted.length) * 100);
 
-  let recommendation = "?ы듃?대━?ㅼ뿉???대? ?ㅻ（??湲곗닠???욎そ ?꾨줈?앺듃 ?ㅻ챸?????좊챸?섍쾶 諛곗튂?섏꽭??";
+  let recommendation =
+    "추출된 키워드 중 비어 있는 항목을 중심으로 포트폴리오와 자기소개서 보강 포인트를 정리하는 편이 좋습니다.";
+
   if (missing.includes("Formal Verification")) {
-    recommendation = "Formal Verification? ?숈뒿 以???ぉ怨??곌껐??'吏꾪뻾以묒씤 ??웾'?쇰줈?쇰룄 紐낆떆?섎뒗 寃껋씠 醫뗭뒿?덈떎.";
+    recommendation =
+      "Formal Verification 경험이 없더라도 assertion 작성 경험과 property 기반 검증 이해를 별도 항목으로 보강하는 편이 좋습니다.";
   } else if (missing.includes("PCIe Gen5")) {
-    recommendation = "PCIe 怨꾩뿴 ?ㅼ썙?쒕뒗 ?ㅽ꽣???꾨줈?앺듃??愿??湲곗닠 ?뱀뀡??蹂닿컯?대몢???몄씠 ?좊━?⑸땲??";
+    recommendation =
+      "PCIe 계열 인터페이스 경험이 부족하면 프로토콜 이해, 전송 지연 trade-off, 검증 포인트를 별도로 정리하는 편이 좋습니다.";
   } else if (missing.length === 0) {
-    recommendation = "?듭떖 ?ㅼ썙?쒕뒗 ?대? 異⑸텇??留욎븘 ?덉뒿?덈떎. ?꾨줈?앺듃???깃낵 ?섏튂? ??븷 踰붿쐞瑜???媛뺤“?섎㈃ ?⑸땲??";
+    recommendation =
+      "주요 요구 키워드는 충분합니다. 이제는 경험별 수치화와 문제 해결 스토리의 밀도를 높이는 쪽이 더 효과적입니다.";
   }
 
   return { extracted: uniqueExtracted, matched, missing, coverage, recommendation };

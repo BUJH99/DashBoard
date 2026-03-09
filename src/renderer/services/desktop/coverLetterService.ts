@@ -4,7 +4,7 @@ import type {
   CoverLetterReadResult,
   CoverLetterSavePayload,
   CoverLetterSaveResponse,
-} from "../../../../shared/desktop-contracts";
+} from "../../../../shared/cover-letter-contracts";
 import { getDesktopApi } from "./desktopApi";
 
 export function getCoverLetterConfig(): Promise<CoverLetterConfig> {

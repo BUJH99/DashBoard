@@ -1,4 +1,4 @@
-import type { DesktopApi } from "../../shared/desktop-contracts.js";
+import type { DesktopApi } from "../../shared/desktop-api-contracts.js";
 import { contextBridge, ipcRenderer } from "electron";
 import { IPC_CHANNELS } from "../main/ipc/channels.cjs";
 

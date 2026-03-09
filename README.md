@@ -1,6 +1,6 @@
 # DashboardLocal
 
-Electron 기반 로컬 전용 취업 준비 대시보드입니다.
+Desktop dashboard for managing hardware-career applications, prep assets, and markdown cover letters.
 
 ## Run
 
@@ -9,8 +9,6 @@ npm install
 npm start
 ```
 
-`npm start`는 로컬 실행용이며 exe를 만들지 않습니다.
-
 ## Build
 
 ```powershell
@@ -18,15 +16,11 @@ npm run build
 npm run electron:pack
 ```
 
-생성된 실행 파일 경로:
-
-`release\win-unpacked\CareerDashboard-GlassBento.exe`
-
 ## Structure
 
-- `Dashboard_MERGED.tsx`: 메인 대시보드 UI
-- `src/`: renderer entry 및 스타일
-- `electron/`: Electron main/preload 및 로컬 파일 처리
-- `coverletters_md/`: 자소서 markdown 폴더
-- `dashboard_local_state.json`: 대시보드 로컬 상태 저장 파일
-- `archive/legacy/`: 이전 프로토타입 보관
+- `src/renderer/features/dashboard/`: refactored dashboard application, presentation, and domain logic
+- `electron/`: Electron main process, preload bridge, and file-backed repositories
+- `shared/`: contracts and shared state defaults
+- `coverletters_md/`: markdown cover letter workspace
+- `dashboard_local_state.json`: persisted desktop dashboard state
+- `archive/legacy/`: unused legacy implementations kept for review before deletion

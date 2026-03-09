@@ -2,6 +2,8 @@
   "name": "career-dashboard-glass-bento",
   "private": true,
   "version": "0.0.0",
+  "description": "Desktop dashboard for managing job applications, interview prep, and cover letters.",
+  "author": "tbdk5",
   "type": "module",
   "main": "dist-electron/electron/main.cjs",
   "scripts": {

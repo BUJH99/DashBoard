@@ -36,27 +36,38 @@ export function normalizeCommuteNote(value: unknown): CommuteNote {
 }
 
 export function hasCommuteNoteContent(value: CommuteNote) {
-  return Boolean(value.totalMinutes || value.transfers || value.hasBus || value.hasSubway || value.note.trim());
+  return Boolean(
+    value.totalMinutes || value.transfers || value.hasBus || value.hasSubway || value.note.trim(),
+  );
 }
 
 export function formatCommuteNoteSummary(value: CommuteNote) {
   const parts: string[] = [];
+
   if (value.totalMinutes) {
-    parts.push(`${value.totalMinutes}遺?`);
+    parts.push(`${value.totalMinutes}분`);
   }
+
   if (value.transfers) {
-    parts.push(`?섏듅 ${value.transfers}??`);
+    parts.push(`환승 ${value.transfers}회`);
   }
+
   if (value.hasBus || value.hasSubway) {
-    const modes = [value.hasBus ? "踰꾩뒪" : null, value.hasSubway ? "吏?섏쿋" : null]
+    const modes = [
+      value.hasBus ? "버스" : null,
+      value.hasSubway ? "지하철" : null,
+    ]
       .filter(Boolean)
       .join(" + ");
+
     if (modes) {
       parts.push(modes);
     }
   }
+
   if (parts.length === 0 && value.note.trim()) {
     parts.push(value.note.trim());
   }
-  return parts.join(" 쨌 ");
+
+  return parts.join(" / ");
 }

@@ -1,0 +1,111 @@
+import type { DashboardLocalState } from "./dashboard-state-contracts.js";
+
+type UnknownRecord = Record<string, unknown>;
+
+export const ALL_INDUSTRY_TAG = "전체";
+
+function isRecord(value: unknown): value is UnknownRecord {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function mergeSection<T extends UnknownRecord>(defaults: T, value: unknown): T {
+  if (!isRecord(value)) {
+    return { ...defaults };
+  }
+
+  return {
+    ...defaults,
+    ...value,
+  } as T;
+}
+
+export function buildDefaultDashboardState(): DashboardLocalState {
+  return {
+    ui: {
+      activeTab: "overview",
+      postingQuery: "",
+      postingCompanyFilter: "all",
+      selectedCompanyId: 1,
+      selectedOfferA: "samsung-ds",
+      selectedOfferB: "telechips",
+      portfolioSubTab: "showcase",
+      selectedChecklistPostingId: 101,
+      selectedEssayId: 301,
+      industryFilter: ALL_INDUSTRY_TAG,
+      flashcardMode: "default",
+      activeFlashcardIndex: 0,
+      selectedScheduleId: 1,
+      selectedCoverLetterName: null,
+    },
+    location: {
+      routeOrigin: "수원역",
+      routeDestination: "삼성전자 DS",
+      companyCommuteNotes: {},
+    },
+    checklists: {
+      applicationChecklists: {},
+    },
+    interview: {
+      flashcardFeedback: {},
+    },
+    jdScanner: {
+      text: "Verilog, SystemVerilog, UVM, AXI, CDC, STA, FPGA 경험 보유",
+    },
+    overview: {
+      taskChecked: {},
+    },
+  };
+}
+
+export function hydrateDashboardState(payload: unknown): DashboardLocalState {
+  const defaults = buildDefaultDashboardState();
+  if (!isRecord(payload)) {
+    return defaults;
+  }
+
+  const ui = mergeSection(defaults.ui, payload.ui);
+  const location = mergeSection(defaults.location, payload.location);
+  const checklists = mergeSection(defaults.checklists, payload.checklists);
+  const interview = mergeSection(defaults.interview, payload.interview);
+  const jdScanner = mergeSection(defaults.jdScanner, payload.jdScanner);
+  const overview = mergeSection(defaults.overview, payload.overview);
+
+  return {
+    ui: {
+      ...ui,
+      activeFlashcardIndex:
+        typeof ui.activeFlashcardIndex === "number" || ui.activeFlashcardIndex === null
+          ? ui.activeFlashcardIndex
+          : defaults.ui.activeFlashcardIndex,
+      selectedCoverLetterName:
+        typeof ui.selectedCoverLetterName === "string" || ui.selectedCoverLetterName === null
+          ? ui.selectedCoverLetterName
+          : defaults.ui.selectedCoverLetterName,
+    },
+    location: {
+      ...location,
+      companyCommuteNotes: isRecord(location.companyCommuteNotes)
+        ? (location.companyCommuteNotes as DashboardLocalState["location"]["companyCommuteNotes"])
+        : defaults.location.companyCommuteNotes,
+    },
+    checklists: {
+      ...checklists,
+      applicationChecklists: isRecord(checklists.applicationChecklists)
+        ? (checklists.applicationChecklists as DashboardLocalState["checklists"]["applicationChecklists"])
+        : defaults.checklists.applicationChecklists,
+    },
+    interview: {
+      ...interview,
+      flashcardFeedback: isRecord(interview.flashcardFeedback)
+        ? (interview.flashcardFeedback as DashboardLocalState["interview"]["flashcardFeedback"])
+        : defaults.interview.flashcardFeedback,
+    },
+    jdScanner,
+    overview: {
+      ...overview,
+      taskChecked: isRecord(overview.taskChecked)
+        ? (overview.taskChecked as DashboardLocalState["overview"]["taskChecked"])
+        : defaults.overview.taskChecked,
+    },
+  };
+}

@@ -1,4 +1,9 @@
-import type { CompanyTarget, CoverLetterDraft, CoverLetterDraftMeta, EnrichedPosting } from "../dashboard/types";
+import type {
+  CompanyTarget,
+  CoverLetterDraft,
+  CoverLetterDraftMeta,
+  EnrichedPosting,
+} from "../dashboard/types";
 
 export function coverLetterSlugify(value: string) {
   return value
@@ -24,7 +29,7 @@ export function buildEmptyCoverLetterDraft(
   const companyName = company?.name ?? "";
   const companyId = company ? String(company.id) : "";
   const safeCompanySlug = companySlug ?? (company ? coverLetterSlugify(company.name) : "");
-  const title = company ? `${company.name} ?먭린?뚭컻??` : "???먯냼??";
+  const title = company ? `${company.name} 자기소개서 초안` : "새 자기소개서 초안";
   const jobTrack = posting?.role ? coverLetterSlugify(posting.role) : "cover-letter";
 
   return {
@@ -41,6 +46,16 @@ export function buildEmptyCoverLetterDraft(
       status: "draft",
       tags: "",
     },
-    content: `# ${title}\n\n## 1. 吏?먮룞湲?\n## 2. 吏곷Т ??웾 寃쏀뿕\n`,
+    content: `# ${title}
+
+## 지원 동기
+회사와 직무를 선택한 이유를 구체적으로 정리합니다.
+
+## 관련 경험
+직무와 가장 직접적으로 연결되는 프로젝트, 수업, 인턴, 업무 경험을 정리합니다.
+
+## 마무리
+입사 후 기여 방안과 성장 방향을 간단히 정리합니다.
+`,
   };
 }

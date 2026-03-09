@@ -1,8 +1,8 @@
 import type {
-  DashboardLocalState,
   DashboardStateReadResponse,
   DashboardStateSaveResponse,
-} from "../../../../shared/desktop-contracts";
+} from "../../../../shared/dashboard-state-service-contracts";
+import type { DashboardLocalState } from "../../../../shared/dashboard-state-contracts";
 import { getDesktopApi } from "./desktopApi";
 
 export function readDashboardState(): Promise<DashboardStateReadResponse> {

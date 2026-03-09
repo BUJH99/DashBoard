@@ -1,4 +1,5 @@
-import type { CoverLetterSavePayload, DashboardLocalState } from "../../shared/desktop-contracts.js";
+import type { CoverLetterSavePayload } from "../../shared/cover-letter-contracts.js";
+import type { DashboardLocalState } from "../../shared/dashboard-state-contracts.js";
 import { ipcMain, shell } from "electron";
 import {
   getCoverLetterConfig,
