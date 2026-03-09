@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  Briefcase,
   Building2,
   CalendarDays,
   FileText,
@@ -53,6 +54,10 @@ export const DASHBOARD_TAB_META: Record<DashboardTab, DashboardTabMeta> = {
     title: "전략 매트릭스",
     subtitle: "적합도와 선호도를 기준으로 지원 전략을 점검합니다.",
   },
+  postings: {
+    title: "채용공고",
+    subtitle: "공고 목록과 상세 내용을 편집하고, 다른 기능과 같은 선택 상태로 연결합니다.",
+  },
   company: {
     title: "기업 분석",
     subtitle: "선택한 기업의 공고, 핵심 기술, 관련 메모를 구조화해서 봅니다.",
@@ -104,6 +109,7 @@ export const DASHBOARD_NAV_SECTIONS = [
     items: [
       { id: "kanban", label: "칸반", icon: KanbanSquare },
       { id: "strategy", label: "전략", icon: Target },
+      { id: "postings", label: "채용공고", icon: Briefcase },
       { id: "company", label: "기업 분석", icon: Building2 },
       { id: "jdscanner", label: "JD 스캐너", icon: Search },
     ] satisfies NavItem[],

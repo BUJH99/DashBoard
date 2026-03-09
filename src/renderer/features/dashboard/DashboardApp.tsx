@@ -8,7 +8,13 @@ import {
 import { LocationTab, OfferTab } from "./components/DecisionTabs";
 import { IndustryTab, OverviewTab } from "./components/OverviewIndustryTabs";
 import { ChecklistTab, PortfolioTab } from "./components/PortfolioChecklistTabs";
-import { CompanyTab, JdScannerTab, KanbanTab, StrategyTab } from "./components/ProcessTabs";
+import {
+  CompanyTab,
+  JdScannerTab,
+  KanbanTab,
+  PostingsTab,
+  StrategyTab,
+} from "./components/ProcessTabs";
 import {
   DASHBOARD_NAV_SECTIONS,
   DASHBOARD_SHELL_COPY,
@@ -30,6 +36,7 @@ export default function DashboardApp() {
       industry: <IndustryTab controller={controller} />,
       kanban: <KanbanTab controller={controller} />,
       strategy: <StrategyTab controller={controller} />,
+      postings: <PostingsTab controller={controller} />,
       company: <CompanyTab controller={controller} />,
       jdscanner: <JdScannerTab controller={controller} />,
       offer: <OfferTab controller={controller} />,

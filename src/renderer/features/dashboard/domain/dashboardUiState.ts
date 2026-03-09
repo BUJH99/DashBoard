@@ -4,6 +4,7 @@ type DashboardUiState = DashboardLocalState["ui"];
 
 type ReconcileDashboardUiStateOptions = {
   companyIds: number[];
+  jobPostingIds: number[];
   checklistPostingIds: number[];
   essayIds: number[];
   scheduleIds: number[];
@@ -30,6 +31,11 @@ export function reconcileDashboardUiState(
     options.checklistPostingIds,
     options.checklistPostingIds[0] ?? ui.selectedChecklistPostingId,
   );
+  const nextJobPostingId = resolveSelection(
+    ui.selectedJobPostingId,
+    options.jobPostingIds,
+    options.jobPostingIds[0] ?? ui.selectedJobPostingId,
+  );
   const nextEssayId = resolveSelection(
     ui.selectedEssayId,
     options.essayIds,
@@ -53,6 +59,7 @@ export function reconcileDashboardUiState(
 
   if (
     nextCompanyId === ui.selectedCompanyId &&
+    nextJobPostingId === ui.selectedJobPostingId &&
     nextChecklistPostingId === ui.selectedChecklistPostingId &&
     nextEssayId === ui.selectedEssayId &&
     nextScheduleId === ui.selectedScheduleId &&
@@ -65,6 +72,7 @@ export function reconcileDashboardUiState(
   return {
     ...ui,
     selectedCompanyId: nextCompanyId,
+    selectedJobPostingId: nextJobPostingId,
     selectedChecklistPostingId: nextChecklistPostingId,
     selectedEssayId: nextEssayId,
     selectedScheduleId: nextScheduleId,

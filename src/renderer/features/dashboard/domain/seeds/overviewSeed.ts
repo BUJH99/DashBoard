@@ -3,7 +3,6 @@ import type {
   ExperienceInsight,
   FunnelStep,
   KpiMetric,
-  PipelineActivity,
   WeeklyTrendPoint,
 } from "../../types";
 
@@ -26,13 +25,8 @@ export const competencyMetrics: CompetencyMetric[] = [
   { value: 92, target: 90, label: "RTL 설계", color: "#2563eb" },
   { value: 84, target: 85, label: "검증", color: "#10b981" },
   { value: 78, target: 82, label: "아키텍처", color: "#f59e0b" },
-];
-
-export const activePipelines: PipelineActivity[] = [
-  { company: "리벨리온", stage: "과제 제출 준비", progress: 65, expectedDate: "3월 12일" },
-  { company: "LX세미콘", stage: "1차 면접", progress: 80, expectedDate: "3월 11일" },
-  { company: "텔레칩스", stage: "2차 면접 준비", progress: 88, expectedDate: "3월 15일" },
-  { company: "SK하이닉스", stage: "인적성 정리", progress: 45, expectedDate: "3월 14일" },
+  { value: 81, target: 80, label: "타이밍 클로저", color: "#8b5cf6" },
+  { value: 87, target: 85, label: "디버그 스토리", color: "#06b6d4" },
 ];
 
 export const weeklyTrend: WeeklyTrendPoint[] = [

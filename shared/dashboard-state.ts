@@ -1,4 +1,8 @@
 import type { DashboardLocalState } from "./dashboard-state-contracts.js";
+import {
+  DEFAULT_DASHBOARD_JOB_POSTINGS,
+  DEFAULT_DASHBOARD_SCHEDULE_ENTRIES,
+} from "./dashboard-editable-data.js";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -19,6 +23,40 @@ function mergeSection<T extends UnknownRecord>(defaults: T, value: unknown): T {
   } as T;
 }
 
+function isScheduleEntry(value: unknown): value is DashboardLocalState["calendar"]["scheduleEntries"][number] {
+  return (
+    isRecord(value) &&
+    typeof value.id === "number" &&
+    typeof value.date === "number" &&
+    typeof value.title === "string" &&
+    typeof value.type === "string" &&
+    typeof value.time === "string" &&
+    typeof value.company === "string"
+  );
+}
+
+function isPostingEntry(value: unknown): value is DashboardLocalState["postings"]["entries"][number] {
+  return (
+    isRecord(value) &&
+    typeof value.id === "number" &&
+    typeof value.targetCompanyId === "number" &&
+    typeof value.company === "string" &&
+    typeof value.title === "string" &&
+    typeof value.role === "string" &&
+    typeof value.deadline === "string" &&
+    typeof value.stage === "string" &&
+    typeof value.fit === "number" &&
+    typeof value.burden === "number" &&
+    typeof value.urgency === "number" &&
+    typeof value.locationFit === "number" &&
+    typeof value.growth === "number" &&
+    typeof value.selfIntroReady === "number" &&
+    Array.isArray(value.keywords) &&
+    value.keywords.every((keyword) => typeof keyword === "string") &&
+    typeof value.summary === "string"
+  );
+}
+
 export function buildDefaultDashboardState(): DashboardLocalState {
   return {
     ui: {
@@ -35,7 +73,17 @@ export function buildDefaultDashboardState(): DashboardLocalState {
       flashcardMode: "default",
       activeFlashcardIndex: 0,
       selectedScheduleId: 1,
+      selectedJobPostingId: 101,
       selectedCoverLetterName: null,
+    },
+    calendar: {
+      scheduleEntries: DEFAULT_DASHBOARD_SCHEDULE_ENTRIES.map((entry) => ({ ...entry })),
+    },
+    postings: {
+      entries: DEFAULT_DASHBOARD_JOB_POSTINGS.map((entry) => ({
+        ...entry,
+        keywords: [...entry.keywords],
+      })),
     },
     location: {
       routeOrigin: "수원역",
@@ -52,6 +100,8 @@ export function buildDefaultDashboardState(): DashboardLocalState {
       text: "Verilog, SystemVerilog, UVM, AXI, CDC, STA, FPGA 경험 보유",
     },
     overview: {
+      query: "",
+      companyFilter: "all",
       taskChecked: {},
     },
   };
@@ -64,6 +114,8 @@ export function hydrateDashboardState(payload: unknown): DashboardLocalState {
   }
 
   const ui = mergeSection(defaults.ui, payload.ui);
+  const calendar = mergeSection(defaults.calendar, payload.calendar);
+  const postings = mergeSection(defaults.postings, payload.postings);
   const location = mergeSection(defaults.location, payload.location);
   const checklists = mergeSection(defaults.checklists, payload.checklists);
   const interview = mergeSection(defaults.interview, payload.interview);
@@ -77,10 +129,24 @@ export function hydrateDashboardState(payload: unknown): DashboardLocalState {
         typeof ui.activeFlashcardIndex === "number" || ui.activeFlashcardIndex === null
           ? ui.activeFlashcardIndex
           : defaults.ui.activeFlashcardIndex,
+      selectedJobPostingId:
+        typeof ui.selectedJobPostingId === "number"
+          ? ui.selectedJobPostingId
+          : defaults.ui.selectedJobPostingId,
       selectedCoverLetterName:
         typeof ui.selectedCoverLetterName === "string" || ui.selectedCoverLetterName === null
           ? ui.selectedCoverLetterName
           : defaults.ui.selectedCoverLetterName,
+    },
+    calendar: {
+      scheduleEntries: Array.isArray(calendar.scheduleEntries)
+        ? calendar.scheduleEntries.filter(isScheduleEntry)
+        : defaults.calendar.scheduleEntries,
+    },
+    postings: {
+      entries: Array.isArray(postings.entries)
+        ? postings.entries.filter(isPostingEntry)
+        : defaults.postings.entries,
     },
     location: {
       ...location,
@@ -103,6 +169,11 @@ export function hydrateDashboardState(payload: unknown): DashboardLocalState {
     jdScanner,
     overview: {
       ...overview,
+      query: typeof overview.query === "string" ? overview.query : defaults.overview.query,
+      companyFilter:
+        typeof overview.companyFilter === "string"
+          ? overview.companyFilter
+          : defaults.overview.companyFilter,
       taskChecked: isRecord(overview.taskChecked)
         ? (overview.taskChecked as DashboardLocalState["overview"]["taskChecked"])
         : defaults.overview.taskChecked,

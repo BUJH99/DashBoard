@@ -1,4 +1,9 @@
-import { Clock3 } from "lucide-react";
+import {
+  Clock3,
+  Plus,
+  Save,
+  Trash2,
+} from "lucide-react";
 import { cn } from "../../../../lib/cn";
 import { Pill, SurfaceCard } from "../../../../components/ui/primitives";
 import type { DashboardController } from "../../useDashboardController";
@@ -8,27 +13,146 @@ type CalendarScheduleSectionProps = {
   calendar: DashboardController["calendar"];
 };
 
+const EVENT_TYPE_LABELS: Record<string, string> = {
+  task: "과제/준비",
+  interview: "면접",
+  deadline: "마감",
+  test: "필기/인적성",
+};
+
 export function CalendarScheduleSection({
   calendar,
 }: CalendarScheduleSectionProps) {
+  const selectedScheduleEvent = calendar.selectedScheduleEvent;
+
   return (
     <div className="grid gap-6">
       <SurfaceCard className="p-6">
-        <div className="mb-4 flex items-center gap-2">
-          <Clock3 className="h-5 w-5 text-blue-500" />
-          <h3 className="text-lg font-bold text-slate-900">선택 일정</h3>
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Clock3 className="h-5 w-5 text-blue-500" />
+            <h3 className="text-lg font-bold text-slate-900">선택 일정 편집</h3>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => calendar.createScheduleEvent()}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              <Plus className="h-4 w-4" />
+              새 일정
+            </button>
+            <button
+              type="button"
+              onClick={() => calendar.deleteScheduleEvent(selectedScheduleEvent.id)}
+              disabled={!calendar.canDelete}
+              className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Trash2 className="h-4 w-4" />
+              삭제
+            </button>
+            <button
+              type="button"
+              onClick={() => void calendar.saveChanges()}
+              className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
+            >
+              <Save className="h-4 w-4" />
+              일정 저장
+            </button>
+          </div>
         </div>
         <div className="rounded-3xl border border-slate-200 bg-slate-50/70 p-5">
-          <div className="flex items-center justify-between gap-3">
-            <Pill className={cn("border", getEventTone(calendar.selectedScheduleEvent.type))}>
-              {calendar.selectedScheduleEvent.type}
+          <div className="flex flex-wrap items-center gap-2">
+            <Pill className={cn("border", getEventTone(selectedScheduleEvent.type))}>
+              {EVENT_TYPE_LABELS[selectedScheduleEvent.type] ?? selectedScheduleEvent.type}
             </Pill>
             <span className="text-xs font-semibold text-slate-500">
-              3월 {calendar.selectedScheduleEvent.date}일 / {calendar.selectedScheduleEvent.time}
+              3월 {selectedScheduleEvent.date}일 / {selectedScheduleEvent.time}
             </span>
           </div>
-          <h4 className="mt-4 text-xl font-bold text-slate-900">{calendar.selectedScheduleEvent.title}</h4>
-          <p className="mt-2 text-sm text-slate-500">{calendar.selectedScheduleEvent.company}</p>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <label className="grid gap-1 text-sm">
+              <span className="font-semibold text-slate-700">일정 제목</span>
+              <input
+                value={selectedScheduleEvent.title}
+                onChange={(event) =>
+                  calendar.updateScheduleEvent(selectedScheduleEvent.id, {
+                    title: event.target.value,
+                  })
+                }
+                className="rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-300"
+              />
+            </label>
+            <label className="grid gap-1 text-sm">
+              <span className="font-semibold text-slate-700">기업</span>
+              <select
+                value={selectedScheduleEvent.company}
+                onChange={(event) =>
+                  calendar.updateScheduleEvent(selectedScheduleEvent.id, {
+                    company: event.target.value,
+                  })
+                }
+                className="rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-300"
+              >
+                {calendar.companyOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="grid gap-1 text-sm">
+              <span className="font-semibold text-slate-700">일정 유형</span>
+              <select
+                value={selectedScheduleEvent.type}
+                onChange={(event) =>
+                  calendar.updateScheduleEvent(selectedScheduleEvent.id, {
+                    type: event.target.value as typeof selectedScheduleEvent.type,
+                  })
+                }
+                className="rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-300"
+              >
+                {calendar.eventTypeOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="grid gap-1 text-sm">
+                <span className="font-semibold text-slate-700">일자</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={31}
+                  value={selectedScheduleEvent.date}
+                  onChange={(event) =>
+                    calendar.updateScheduleEvent(selectedScheduleEvent.id, {
+                      date: Number(event.target.value || 1),
+                    })
+                  }
+                  className="rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-300"
+                />
+              </label>
+              <label className="grid gap-1 text-sm">
+                <span className="font-semibold text-slate-700">시간</span>
+                <input
+                  type="time"
+                  value={selectedScheduleEvent.time}
+                  onChange={(event) =>
+                    calendar.updateScheduleEvent(selectedScheduleEvent.id, {
+                      time: event.target.value,
+                    })
+                  }
+                  className="rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-300"
+                />
+              </label>
+            </div>
+          </div>
+          {calendar.saveMessage ? (
+            <p className="mt-4 text-xs font-medium text-slate-500">{calendar.saveMessage}</p>
+          ) : null}
         </div>
       </SurfaceCard>
 

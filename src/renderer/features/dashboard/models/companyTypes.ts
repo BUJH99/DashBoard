@@ -1,3 +1,5 @@
+import type { DashboardJobPostingEntry } from "../../../../../shared/dashboard-editable-data";
+
 export type CompanyStrategyType = string;
 
 export type CompanyPipelineStage =
@@ -31,22 +33,8 @@ export type CompanyDetail = {
   news: string[];
 };
 
-export type JobPosting = {
-  id: number;
-  targetCompanyId: number;
-  company: string;
-  title: string;
-  role: string;
-  deadline: string;
+export type JobPosting = DashboardJobPostingEntry & {
   stage: PostingStage;
-  fit: number;
-  burden: number;
-  urgency: number;
-  locationFit: number;
-  growth: number;
-  selfIntroReady: number;
-  keywords: string[];
-  summary: string;
 };
 
 export type EnrichedPosting = JobPosting & {

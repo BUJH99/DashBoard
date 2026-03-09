@@ -47,7 +47,10 @@ export function CalendarBoardSection({
             const sameDayEvent = calendar.upcomingSchedule.find((event) => event.date === info.date.getDate());
             if (sameDayEvent) {
               calendar.setSelectedScheduleId(sameDayEvent.id);
+              return;
             }
+
+            calendar.createScheduleEvent(info.date.getDate());
           }}
         />
       </div>

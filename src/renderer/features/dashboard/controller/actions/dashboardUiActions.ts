@@ -9,24 +9,18 @@ export function createDashboardUiActions({
   const setActiveTab = (tab: DashboardTab) => setUiState("activeTab", tab);
   const setPortfolioSubTab = (tab: PortfolioSubTab) => setUiState("portfolioSubTab", tab);
 
-  const toggleOverviewTask = (postingId: number) => {
-    setDashboardState((current) => ({
-      ...current,
-      overview: {
-        taskChecked: {
-          ...current.overview.taskChecked,
-          [postingId]: !current.overview.taskChecked[postingId],
-        },
-      },
-    }));
-  };
-
   const updateSelectedCompanyId = (companyId: number) => {
     setDashboardState((current) => ({
       ...current,
       ui: {
         ...current.ui,
         selectedCompanyId: companyId,
+        selectedJobPostingId:
+          current.postings.entries.find((posting) => posting.targetCompanyId === companyId)?.id ??
+          current.ui.selectedJobPostingId,
+        selectedChecklistPostingId:
+          current.postings.entries.find((posting) => posting.targetCompanyId === companyId)?.id ??
+          current.ui.selectedChecklistPostingId,
         postingCompanyFilter: String(companyId),
       },
       location: {
@@ -40,7 +34,6 @@ export function createDashboardUiActions({
   return {
     setActiveTab,
     setPortfolioSubTab,
-    toggleOverviewTask,
     updateSelectedCompanyId,
   };
 }

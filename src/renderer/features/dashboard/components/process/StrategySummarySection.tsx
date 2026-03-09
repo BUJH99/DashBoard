@@ -1,6 +1,7 @@
 import { MapPin } from "lucide-react";
 import { Pill, ProgressBar, SurfaceCard } from "../../../../components/ui/primitives";
 import { cn } from "../../../../lib/cn";
+import { buildStrategyMatrixModel } from "../../domain/strategyMatrix";
 import type { DashboardController } from "../../useDashboardController";
 import { getCompanyTypeTone } from "../viewUtils";
 
@@ -13,6 +14,14 @@ export function StrategySummarySection({
   companies,
   overview,
 }: StrategySummarySectionProps) {
+  const strategyModel = buildStrategyMatrixModel(
+    companies.companyTargets,
+    companies.selectedCompany.id,
+  );
+  const selectedQuadrant = strategyModel.quadrantSummaries.find(
+    (quadrant) => quadrant.id === strategyModel.selectedPoint.quadrantId,
+  );
+
   return (
     <SurfaceCard className="p-6">
       <div className="mb-4 flex items-start justify-between gap-4">
@@ -59,6 +68,27 @@ export function StrategySummarySection({
                 <span className="font-semibold text-slate-800">{companies.selectedCompany.preference}%</span>
               </div>
               <ProgressBar value={companies.selectedCompany.preference} color="#4f46e5" />
+            </div>
+          </div>
+          <div className="mt-3 grid gap-3 md:grid-cols-3">
+            <div className="rounded-2xl bg-white p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Rank</p>
+              <p className="mt-2 text-2xl font-black text-slate-900">
+                #{strategyModel.selectedPoint.rank}
+              </p>
+              <p className="mt-1 text-xs text-slate-500">전략 우선순위</p>
+            </div>
+            <div className="rounded-2xl bg-white p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Score</p>
+              <p className="mt-2 text-2xl font-black text-slate-900">
+                {strategyModel.selectedPoint.strategicScore}
+              </p>
+              <p className="mt-1 text-xs text-slate-500">적합도/선호도 종합</p>
+            </div>
+            <div className="rounded-2xl bg-white p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Quadrant</p>
+              <p className="mt-2 text-sm font-bold text-slate-900">{selectedQuadrant?.label}</p>
+              <p className="mt-1 text-xs text-slate-500">{selectedQuadrant?.description}</p>
             </div>
           </div>
         </div>

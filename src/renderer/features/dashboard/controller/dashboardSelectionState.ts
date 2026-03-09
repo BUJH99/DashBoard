@@ -16,6 +16,7 @@ type BuildDashboardCompanySnapshotOptions = {
   companyTargets: CompanyTarget[];
   postings: EnrichedPosting[];
   selectedCompanyId: number;
+  selectedJobPostingId: number;
   companySlugMap: Record<number, string>;
   coverLetterSlugify: (value: string) => string;
 };
@@ -24,13 +25,19 @@ export function buildDashboardCompanySnapshot({
   companyTargets,
   postings,
   selectedCompanyId,
+  selectedJobPostingId,
   companySlugMap,
   coverLetterSlugify,
 }: BuildDashboardCompanySnapshotOptions) {
   const snapshotCompany =
     companyTargets.find((company) => company.id === selectedCompanyId) ?? companyTargets[0];
   const snapshotCompanyPosting =
-    postings.find((posting) => posting.targetCompanyId === snapshotCompany.id) ?? postings[0];
+    postings.find(
+      (posting) =>
+        posting.id === selectedJobPostingId && posting.targetCompanyId === snapshotCompany.id,
+    ) ??
+    postings.find((posting) => posting.targetCompanyId === snapshotCompany.id) ??
+    postings[0];
   const snapshotCompanySlug =
     companySlugMap[snapshotCompany.id] ?? coverLetterSlugify(snapshotCompany.name);
 
@@ -72,6 +79,8 @@ export function buildDashboardSelectionState({
 
   const selectedScheduleEvent =
     schedule.find((event) => event.id === dashboardState.ui.selectedScheduleId) ?? schedule[0];
+  const selectedJobPosting =
+    postings.find((posting) => posting.id === dashboardState.ui.selectedJobPostingId) ?? postings[0];
   const selectedChecklistPosting =
     postings.find((posting) => posting.id === dashboardState.ui.selectedChecklistPostingId) ?? postings[0];
   const selectedEssay =
@@ -102,6 +111,7 @@ export function buildDashboardSelectionState({
     activeFlashcardIndex,
     activeFlashcard,
     selectedScheduleEvent,
+    selectedJobPosting,
     selectedChecklistPosting,
     selectedEssay,
     selectedOfferA,

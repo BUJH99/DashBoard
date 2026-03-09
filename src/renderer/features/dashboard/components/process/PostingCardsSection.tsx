@@ -6,6 +6,8 @@ type PostingCardsSectionProps = {
   description?: string;
   postings: DashboardController["companies"]["relatedPostings"];
   badgeMode: "priority" | "deadline";
+  selectedPostingId?: number;
+  onSelectPosting?: (postingId: number) => void;
 };
 
 export function PostingCardsSection({
@@ -13,6 +15,8 @@ export function PostingCardsSection({
   description,
   postings,
   badgeMode,
+  selectedPostingId,
+  onSelectPosting,
 }: PostingCardsSectionProps) {
   return (
     <SurfaceCard className="p-6">
@@ -22,17 +26,31 @@ export function PostingCardsSection({
       </div>
       <div className="grid gap-3">
         {postings.map((posting) => (
-          <div key={posting.id} className="rounded-2xl border border-slate-200 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-semibold text-slate-800">{posting.title}</p>
-                <p className="mt-2 text-sm text-slate-500">{posting.summary}</p>
+          <button
+            key={posting.id}
+            type="button"
+            onClick={() => onSelectPosting?.(posting.id)}
+            className="rounded-2xl text-left"
+          >
+            <div
+              className={[
+                "rounded-2xl border p-4 transition",
+                selectedPostingId === posting.id
+                  ? "border-cyan-300 bg-cyan-50/40 shadow-sm"
+                  : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/60",
+              ].join(" ")}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-semibold text-slate-800">{posting.title}</p>
+                  <p className="mt-2 text-sm text-slate-500">{posting.summary}</p>
+                </div>
+                <Pill className="border-slate-200 bg-slate-100 text-slate-700">
+                  {badgeMode === "priority" ? `우선순위 ${posting.priority}` : `D-${posting.daysLeft}`}
+                </Pill>
               </div>
-              <Pill className="border-slate-200 bg-slate-100 text-slate-700">
-                {badgeMode === "priority" ? `우선순위 ${posting.priority}` : `D-${posting.daysLeft}`}
-              </Pill>
             </div>
-          </div>
+          </button>
         ))}
       </div>
     </SurfaceCard>

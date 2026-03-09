@@ -26,6 +26,7 @@ export function useDashboardUiStateReconciliation({
     setDashboardState((current) => {
       const nextUi = reconcileDashboardUiState(current.ui, {
         companyIds: companyTargets.map((item) => item.id),
+        jobPostingIds: postings.map((item) => item.id),
         checklistPostingIds: postings.map((item) => item.id),
         essayIds: essayQuestions.map((item) => item.id),
         scheduleIds: schedule.map((item) => item.id),

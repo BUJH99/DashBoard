@@ -39,10 +39,10 @@ export function CompanyPostingFilterSection({
           <button
             key={posting.id}
             type="button"
-            onClick={() => companies.updateSelectedCompanyId(posting.targetCompanyId)}
+            onClick={() => companies.setSelectedPostingId(posting.id)}
             className={cn(
               "flex w-full items-center justify-between rounded-2xl border p-4 text-left transition",
-              companies.selectedCompany.id === posting.targetCompanyId
+              companies.selectedJobPosting.id === posting.id
                 ? "border-cyan-300 bg-cyan-50/50 shadow-sm"
                 : "border-transparent hover:bg-slate-50",
             )}

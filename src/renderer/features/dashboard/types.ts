@@ -50,7 +50,14 @@ export type {
   ExperienceInsight,
   FunnelStep,
   KpiMetric,
-  PipelineActivity,
+  OverviewActionItem,
+  OverviewCompanyOption,
+  OverviewFocusItem,
+  OverviewObservationPoint,
+  OverviewStageKind,
+  OverviewSummaryMetric,
+  OverviewSupportFlowItem,
+  OverviewUrgentItem,
   WeeklyTrendPoint,
 } from "./models/overviewTypes";
 export type { PortfolioData } from "./models/portfolioTypes";

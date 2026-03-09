@@ -37,6 +37,21 @@ function buildChecklist(company: string, role: string): ApplicationChecklistItem
   ];
 }
 
+type ChecklistTemplateSource = {
+  id: number;
+  company: string;
+  title: string;
+};
+
+export function buildChecklistTemplates(postings: ChecklistTemplateSource[]) {
+  return Object.fromEntries(
+    postings.map((posting) => [
+      posting.id,
+      buildChecklist(posting.company, posting.title),
+    ]),
+  ) as Record<number, ApplicationChecklistItem[]>;
+}
+
 export const checklistTemplates: Record<number, ApplicationChecklistItem[]> = {
   101: buildChecklist("삼성전자 DS", "RTL 설계"),
   102: buildChecklist("SK하이닉스", "컨트롤러 RTL"),

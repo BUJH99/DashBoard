@@ -24,16 +24,19 @@ export function getNewsTone(tag: string) {
 }
 
 export function getCompanyTypeTone(type: string) {
-  if (type === "핵심 지원") {
+  if (type === "집중 지원") {
     return "border-blue-200 bg-blue-50 text-blue-700";
   }
   if (type === "스트레치") {
     return "border-amber-200 bg-amber-50 text-amber-700";
   }
+  if (type === "균형 카드") {
+    return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  }
   if (type === "안정 카드") {
     return "border-slate-200 bg-slate-100 text-slate-700";
   }
-  return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  return "border-cyan-200 bg-cyan-50 text-cyan-700";
 }
 
 export function getEventTone(type: string) {

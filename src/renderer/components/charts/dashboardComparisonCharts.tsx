@@ -3,6 +3,10 @@ import type {
   FunnelStep,
   OfferProfile,
 } from "../../features/dashboard/types";
+import type {
+  StrategyMatrixModel,
+  StrategyQuadrantId,
+} from "../../features/dashboard/domain/strategyMatrix";
 import { cn } from "../../lib/cn";
 
 const FUNNEL_COLORS = ["#4f46e5", "#2563eb", "#0ea5e9", "#14b8a6", "#22c55e"];
@@ -44,69 +48,235 @@ export function FunnelChart({ data }: { data: FunnelStep[] }) {
   );
 }
 
+const STRATEGY_QUADRANT_TONES: Record<
+  StrategyQuadrantId,
+  { panel: string; label: string; point: string }
+> = {
+  observe: {
+    panel: "bg-slate-100/85 text-slate-600",
+    label: "border-slate-200 bg-white/90 text-slate-700",
+    point: "bg-slate-500",
+  },
+  stretch: {
+    panel: "bg-amber-50/85 text-amber-700",
+    label: "border-amber-200 bg-white/90 text-amber-700",
+    point: "bg-amber-500",
+  },
+  stable: {
+    panel: "bg-emerald-50/85 text-emerald-700",
+    label: "border-emerald-200 bg-white/90 text-emerald-700",
+    point: "bg-emerald-500",
+  },
+  focus: {
+    panel: "bg-cyan-50/85 text-cyan-700",
+    label: "border-cyan-200 bg-white/90 text-cyan-700",
+    point: "bg-cyan-500",
+  },
+};
+
+function getScaledPercent(value: number, min: number, max: number) {
+  return ((value - min) / (max - min)) * 100;
+}
+
 export function StrategyMatrix({
-  data,
-  selectedId,
+  model,
   onSelect,
 }: {
-  data: CompanyTarget[];
-  selectedId: number;
+  model: StrategyMatrixModel;
   onSelect: (id: number) => void;
 }) {
-  return (
-    <div className="relative aspect-[4/3] w-full rounded-tr-lg border-b-2 border-l-2 border-slate-300 bg-slate-50/50">
-      <div className="absolute left-0 top-0 h-1/2 w-1/2 bg-yellow-50/40" />
-      <div className="absolute right-0 top-0 h-1/2 w-1/2 rounded-tr-lg bg-blue-50/40" />
-      <div className="absolute bottom-0 left-0 h-1/2 w-1/2 bg-slate-100/60" />
-      <div className="absolute bottom-0 right-0 h-1/2 w-1/2 bg-emerald-50/40" />
-      <div className="absolute left-0 top-1/2 h-px w-full border-t border-dashed border-slate-400" />
-      <div className="absolute left-1/2 top-0 h-full w-px border-l border-dashed border-slate-400" />
-      <span className="absolute left-4 top-2 text-xs font-bold text-yellow-700/80">선호 낮음</span>
-      <span className="absolute right-4 top-2 text-xs font-bold text-blue-700/80">선호 높음</span>
-      <span className="absolute bottom-4 left-4 text-xs font-bold text-slate-500">적합도 낮음</span>
-      <span className="absolute bottom-4 right-4 text-xs font-bold text-emerald-700/80">적합도 높음</span>
-      <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs font-bold text-slate-600">
-        적합도
-      </span>
-      <span className="absolute -left-10 top-1/2 -translate-y-1/2 -rotate-90 whitespace-nowrap text-xs font-bold text-slate-600">
-        선호도
-      </span>
-      {data.map((target) => {
-        const left = `${target.fit}%`;
-        const top = `${100 - target.preference}%`;
-        const colorClass =
-          target.type === "집중 지원"
-            ? "bg-blue-500"
-            : target.type === "스트레치"
-              ? "bg-amber-400"
-              : "bg-emerald-500";
+  const fitThresholdPercent = getScaledPercent(
+    model.fitScale.threshold,
+    model.fitScale.min,
+    model.fitScale.max,
+  );
+  const preferenceThresholdPercent =
+    100 -
+    getScaledPercent(
+      model.preferenceScale.threshold,
+      model.preferenceScale.min,
+      model.preferenceScale.max,
+    );
+  const selectedLeft = getScaledPercent(
+    model.selectedPoint.fit,
+    model.fitScale.min,
+    model.fitScale.max,
+  );
+  const selectedTop =
+    100 -
+    getScaledPercent(
+      model.selectedPoint.preference,
+      model.preferenceScale.min,
+      model.preferenceScale.max,
+    );
 
-        return (
-          <button
-            key={target.id}
-            type="button"
-            onClick={() => onSelect(target.id)}
-            className="group absolute -translate-x-1/2 -translate-y-1/2"
-            style={{ left, top }}
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {model.quadrantSummaries.map((quadrant) => (
+          <div
+            key={quadrant.id}
+            className={cn(
+              "rounded-2xl border border-white/60 px-4 py-3 shadow-sm",
+              STRATEGY_QUADRANT_TONES[quadrant.id].panel,
+            )}
           >
-            <div
-              className={cn(
-                "h-4 w-4 rounded-full ring-4 ring-white transition-all group-hover:scale-125",
-                colorClass,
-                selectedId === target.id ? "scale-125 shadow-lg" : "shadow-sm",
-              )}
-            />
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-bold">{quadrant.label}</p>
+              <span className="rounded-full bg-white/80 px-2 py-0.5 text-xs font-semibold">
+                {quadrant.count}곳
+              </span>
+            </div>
+            <p className="mt-2 text-xs leading-5 opacity-90">{quadrant.description}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="relative aspect-[11/8] w-full overflow-hidden rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,0.96),rgba(241,245,249,0.88))] shadow-inner">
+        <div
+          className="absolute inset-y-0 left-0 border-r border-white/40 bg-slate-100/70"
+          style={{ width: `${fitThresholdPercent}%` }}
+        />
+        <div
+          className="absolute left-0 top-0 border-b border-white/40 bg-amber-50/60"
+          style={{ width: `${fitThresholdPercent}%`, height: `${preferenceThresholdPercent}%` }}
+        />
+        <div
+          className="absolute right-0 top-0 border-l border-white/40 bg-cyan-50/65"
+          style={{ width: `${100 - fitThresholdPercent}%`, height: `${preferenceThresholdPercent}%` }}
+        />
+        <div
+          className="absolute bottom-0 right-0 border-l border-t border-white/40 bg-emerald-50/70"
+          style={{ width: `${100 - fitThresholdPercent}%`, height: `${100 - preferenceThresholdPercent}%` }}
+        />
+
+        {model.fitScale.ticks.map((tick) => {
+          const left = getScaledPercent(tick, model.fitScale.min, model.fitScale.max);
+          return (
+            <div key={`fit-${tick}`}>
+              <div
+                className="absolute inset-y-0 border-l border-dashed border-slate-300/70"
+                style={{ left: `${left}%` }}
+              />
+              <span
+                className="absolute bottom-3 -translate-x-1/2 text-[11px] font-semibold text-slate-500"
+                style={{ left: `${left}%` }}
+              >
+                {tick}
+              </span>
+            </div>
+          );
+        })}
+
+        {model.preferenceScale.ticks.map((tick) => {
+          const top =
+            100 - getScaledPercent(tick, model.preferenceScale.min, model.preferenceScale.max);
+          return (
+            <div key={`pref-${tick}`}>
+              <div
+                className="absolute inset-x-0 border-t border-dashed border-slate-300/70"
+                style={{ top: `${top}%` }}
+              />
+              <span
+                className="absolute left-3 -translate-y-1/2 text-[11px] font-semibold text-slate-500"
+                style={{ top: `${top}%` }}
+              >
+                {tick}
+              </span>
+            </div>
+          );
+        })}
+
+        <div
+          className="absolute inset-y-0 border-l-2 border-cyan-300/80"
+          style={{ left: `${fitThresholdPercent}%` }}
+        />
+        <div
+          className="absolute inset-x-0 border-t-2 border-cyan-300/80"
+          style={{ top: `${preferenceThresholdPercent}%` }}
+        />
+
+        <span className="absolute bottom-12 left-1/2 -translate-x-1/2 rounded-full border border-slate-200 bg-white/90 px-3 py-1 text-xs font-bold text-slate-600 shadow-sm">
+          적합도
+        </span>
+        <span className="absolute left-4 top-1/2 -translate-y-1/2 -rotate-90 rounded-full border border-slate-200 bg-white/90 px-3 py-1 text-xs font-bold text-slate-600 shadow-sm">
+          선호도
+        </span>
+
+        <div className="absolute left-5 top-5 max-w-[180px] rounded-2xl border border-slate-200 bg-white/92 p-3 shadow-sm backdrop-blur">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Selected</p>
+          <p className="mt-1 text-base font-bold text-slate-900">{model.selectedPoint.name}</p>
+          <div className="mt-2 flex flex-wrap gap-2 text-xs">
+            <span className="rounded-full bg-slate-100 px-2 py-1 font-semibold text-slate-700">
+              전략 점수 {model.selectedPoint.strategicScore}
+            </span>
             <span
               className={cn(
-                "absolute left-1/2 top-5 -translate-x-1/2 whitespace-nowrap rounded bg-white/90 px-1.5 py-0.5 text-[10px] font-bold text-slate-700 shadow-sm transition-opacity",
-                selectedId === target.id ? "opacity-100" : "opacity-85",
+                "rounded-full border px-2 py-1 font-semibold",
+                STRATEGY_QUADRANT_TONES[model.selectedPoint.quadrantId].label,
               )}
             >
-              {target.name}
+              {model.quadrantSummaries.find((item) => item.id === model.selectedPoint.quadrantId)?.label}
             </span>
-          </button>
-        );
-      })}
+          </div>
+          <p className="mt-2 text-xs text-slate-500">
+            적합도 {model.selectedPoint.fit}% / 선호도 {model.selectedPoint.preference}%
+          </p>
+        </div>
+
+        <div
+          className="absolute bottom-12 border-l-2 border-dotted border-slate-400/80"
+          style={{
+            left: `${selectedLeft}%`,
+            top: `${selectedTop}%`,
+          }}
+        />
+        <div
+          className="absolute left-10 border-t-2 border-dotted border-slate-400/80"
+          style={{
+            top: `${selectedTop}%`,
+            width: `calc(${selectedLeft}% - 2.5rem)`,
+          }}
+        />
+
+        {model.points.map((point) => {
+          const left = getScaledPercent(point.fit, model.fitScale.min, model.fitScale.max);
+          const top =
+            100 - getScaledPercent(point.preference, model.preferenceScale.min, model.preferenceScale.max);
+
+          return (
+            <button
+              key={point.id}
+              type="button"
+              onClick={() => onSelect(point.id)}
+              className="group absolute -translate-x-1/2 -translate-y-1/2 text-left"
+              style={{ left: `${left}%`, top: `${top}%` }}
+            >
+              <div className="relative">
+                <div
+                  className={cn(
+                    "flex h-10 w-10 items-center justify-center rounded-full border-4 border-white text-xs font-black text-white shadow-lg transition-all duration-200 group-hover:scale-110",
+                    STRATEGY_QUADRANT_TONES[point.quadrantId].point,
+                    model.selectedPoint.id === point.id ? "scale-110 ring-8 ring-cyan-100/70" : "ring-4 ring-white/60",
+                  )}
+                >
+                  {point.rank}
+                </div>
+                <div
+                  className={cn(
+                    "absolute left-1/2 top-12 min-w-[84px] -translate-x-1/2 rounded-2xl border px-2.5 py-2 text-center shadow-sm backdrop-blur transition-all",
+                    STRATEGY_QUADRANT_TONES[point.quadrantId].label,
+                    model.selectedPoint.id === point.id ? "opacity-100" : "opacity-90 group-hover:opacity-100",
+                  )}
+                >
+                  <p className="whitespace-pre-line text-[11px] font-bold leading-4">{point.shortName}</p>
+                  <p className="mt-1 text-[10px] font-semibold opacity-80">점수 {point.strategicScore}</p>
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

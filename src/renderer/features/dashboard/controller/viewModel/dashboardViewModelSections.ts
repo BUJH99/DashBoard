@@ -1,14 +1,11 @@
 import {
-  activePipelines,
   analyticsInsights,
   competencyMetrics,
   funnelSteps,
-  kpiMetrics,
   weeklyTrend,
 } from "../../domain/seeds/overviewSeed";
 import {
   companyDetails,
-  companyTargets,
 } from "../../domain/seeds/companySeed";
 import { industryNews } from "../../domain/seeds/industrySeed";
 import {
@@ -25,19 +22,28 @@ import { buildIndustryTags } from "../dashboardMessages";
 import type { BuildDashboardViewModelOptions } from "./dashboardViewModelTypes";
 
 export function buildOverviewViewModel({
-  filteredPostings,
-  urgentPostings,
+  overviewCollections,
   actions,
   dashboardState,
 }: BuildDashboardViewModelOptions) {
   return {
-    kpiMetrics,
-    urgentPostings,
-    activePipelines,
     analyticsInsights,
     funnelSteps,
     competencyMetrics,
-    priorityPostings: filteredPostings.slice(0, 4),
+    filters: {
+      query: dashboardState.overview.query,
+      companyFilter: dashboardState.overview.companyFilter,
+      companyOptions: overviewCollections.companyOptions,
+      setQuery: actions.setOverviewQuery,
+      setCompanyFilter: actions.setOverviewCompanyFilter,
+      reset: actions.resetOverviewFilters,
+    },
+    summaryMetrics: overviewCollections.summaryMetrics,
+    topActions: overviewCollections.topActions,
+    supportFlow: overviewCollections.supportFlow,
+    focusItems: overviewCollections.focusItems,
+    urgentItems: overviewCollections.urgentItems,
+    observationPoints: overviewCollections.observationPoints,
     weeklyTrend,
     toggleOverviewTask: actions.toggleOverviewTask,
     taskChecked: dashboardState.overview.taskChecked,
@@ -58,10 +64,12 @@ export function buildIndustryViewModel({
 }
 
 export function buildCompaniesViewModel({
+  companyTargets,
   selectedCompany,
   selectedCompanyDetail,
   selectedCompanySlug,
   selectedCompanyPosting,
+  selectedJobPosting,
   relatedPostings,
   companyCoverLetters,
   filteredPostings,
@@ -69,19 +77,26 @@ export function buildCompaniesViewModel({
   setUiState,
   actions,
 }: BuildDashboardViewModelOptions) {
+  const activeSelectedPosting =
+    selectedJobPosting.targetCompanyId === selectedCompany.id
+      ? selectedJobPosting
+      : selectedCompanyPosting;
+
   return {
     companyTargets,
     companyDetails,
     selectedCompany,
     selectedCompanyDetail,
     selectedCompanySlug,
-    selectedCompanyPosting,
+    selectedCompanyPosting: activeSelectedPosting,
+    selectedJobPosting,
     relatedPostings,
     companyCoverLetters,
     filteredPostings,
     setPostingQuery: (value: string) => setUiState("postingQuery", value),
     setPostingCompanyFilter: (value: string) => setUiState("postingCompanyFilter", value),
     updateSelectedCompanyId: actions.updateSelectedCompanyId,
+    setSelectedPostingId: actions.selectJobPosting,
     postingQuery: dashboardState.ui.postingQuery,
     postingCompanyFilter: dashboardState.ui.postingCompanyFilter,
   };
@@ -135,13 +150,12 @@ export function buildPortfolioViewModel({
 export function buildChecklistViewModel({
   selectedChecklistPosting,
   checklistItems,
-  setUiState,
   actions,
 }: BuildDashboardViewModelOptions) {
   return {
     selectedPosting: selectedChecklistPosting,
     checklistItems,
-    setSelectedPostingId: (id: number) => setUiState("selectedChecklistPostingId", id),
+    setSelectedPostingId: actions.selectJobPosting,
     toggleChecklistItemDone: actions.toggleChecklistItemDone,
     toggleChecklistItemBlocked: actions.toggleChecklistItemBlocked,
     updateChecklistItemNote: actions.updateChecklistItemNote,
@@ -180,16 +194,77 @@ export function buildEssaysViewModel({
 }
 
 export function buildCalendarViewModel({
+  companyTargets,
+  dashboardState,
+  dashboardStateMessage,
+  saveDashboardState,
   calendarEvents,
   selectedScheduleEvent,
   upcomingSchedule,
+  actions,
   setUiState,
 }: BuildDashboardViewModelOptions) {
   return {
     calendarEvents,
     selectedScheduleEvent,
     upcomingSchedule,
+    companyOptions: companyTargets.map((company) => ({
+      value: company.name,
+      label: company.name,
+    })),
+    eventTypeOptions: [
+      { value: "task", label: "과제/준비" },
+      { value: "interview", label: "면접" },
+      { value: "deadline", label: "마감" },
+      { value: "test", label: "필기/인적성" },
+    ],
+    saveMessage: dashboardStateMessage,
+    canDelete: dashboardState.calendar.scheduleEntries.length > 1,
     setSelectedScheduleId: (id: number) => setUiState("selectedScheduleId", id),
+    updateScheduleEvent: actions.updateScheduleEvent,
+    createScheduleEvent: actions.createScheduleEvent,
+    deleteScheduleEvent: actions.deleteScheduleEvent,
+    saveChanges: saveDashboardState,
+  };
+}
+
+export function buildPostingsViewModel({
+  companyTargets,
+  dashboardState,
+  dashboardStateMessage,
+  saveDashboardState,
+  filteredPostings,
+  selectedJobPosting,
+  actions,
+  setUiState,
+}: BuildDashboardViewModelOptions) {
+  return {
+    companyOptions: companyTargets.map((company) => ({
+      value: String(company.id),
+      label: company.name,
+    })),
+    stageOptions: [
+      "서류 제출",
+      "서류 합격",
+      "과제",
+      "인적성 예정",
+      "1차 면접",
+      "2차 면접",
+    ],
+    filteredPostings,
+    selectedPosting: selectedJobPosting,
+    postingQuery: dashboardState.ui.postingQuery,
+    postingCompanyFilter: dashboardState.ui.postingCompanyFilter,
+    setPostingQuery: (value: string) => setUiState("postingQuery", value),
+    setPostingCompanyFilter: (value: string) => setUiState("postingCompanyFilter", value),
+    setSelectedPostingId: actions.selectJobPosting,
+    updatePosting: actions.updateJobPosting,
+    updatePostingKeywords: actions.updateJobPostingKeywords,
+    createPosting: actions.createJobPosting,
+    deletePosting: actions.deleteJobPosting,
+    saveChanges: saveDashboardState,
+    saveMessage: dashboardStateMessage,
+    canDelete: dashboardState.postings.entries.length > 1,
   };
 }
 

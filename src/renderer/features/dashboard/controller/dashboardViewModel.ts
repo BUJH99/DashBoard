@@ -9,6 +9,7 @@ import {
   buildLocationViewModel,
   buildOfferViewModel,
   buildOverviewViewModel,
+  buildPostingsViewModel,
   buildPortfolioViewModel,
 } from "./viewModel/dashboardViewModelSections";
 import type { BuildDashboardViewModelOptions } from "./viewModel/dashboardViewModelTypes";
@@ -25,6 +26,7 @@ export function buildDashboardViewModel(options: BuildDashboardViewModelOptions)
     overview: buildOverviewViewModel(options),
     industry: buildIndustryViewModel(options),
     companies: buildCompaniesViewModel(options),
+    postings: buildPostingsViewModel(options),
     offer: buildOfferViewModel(options),
     location: buildLocationViewModel(options),
     portfolio: buildPortfolioViewModel(options),

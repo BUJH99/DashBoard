@@ -14,6 +14,13 @@ import type {
   JdScanResult,
   JdScanState,
   OfferCatalogEntry,
+  OverviewActionItem,
+  OverviewCompanyOption,
+  OverviewFocusItem,
+  OverviewObservationPoint,
+  OverviewSummaryMetric,
+  OverviewSupportFlowItem,
+  OverviewUrgentItem,
   ScheduleEvent,
 } from "../../types";
 import type { DashboardActions, SetUiState } from "../dashboardActions";
@@ -28,11 +35,22 @@ export type BuildDashboardViewModelOptions = {
   coverLetterWorkspace: CoverLetterWorkspace;
   filteredPostings: EnrichedPosting[];
   filteredIndustryNews: IndustryNewsItem[];
-  urgentPostings: EnrichedPosting[];
+  overviewCollections: {
+    filteredPostings: EnrichedPosting[];
+    summaryMetrics: OverviewSummaryMetric[];
+    topActions: OverviewActionItem[];
+    supportFlow: OverviewSupportFlowItem[];
+    focusItems: OverviewFocusItem[];
+    urgentItems: OverviewUrgentItem[];
+    observationPoints: OverviewObservationPoint[];
+    companyOptions: OverviewCompanyOption[];
+  };
+  companyTargets: CompanyTarget[];
   selectedCompany: CompanyTarget;
   selectedCompanyDetail: CompanyDetail;
   selectedCompanySlug: string;
   selectedCompanyPosting: EnrichedPosting;
+  selectedJobPosting: EnrichedPosting;
   relatedPostings: EnrichedPosting[];
   companyCoverLetters: CoverLetterRecord[];
   selectedOfferA: OfferCatalogEntry;

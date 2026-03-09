@@ -1,0 +1,143 @@
+export type DashboardScheduleEventType = "task" | "interview" | "deadline" | "test";
+
+export type DashboardScheduleEntry = {
+  id: number;
+  date: number;
+  title: string;
+  type: DashboardScheduleEventType;
+  time: string;
+  company: string;
+};
+
+export type DashboardJobPostingEntry = {
+  id: number;
+  targetCompanyId: number;
+  company: string;
+  title: string;
+  role: string;
+  deadline: string;
+  stage: string;
+  fit: number;
+  burden: number;
+  urgency: number;
+  locationFit: number;
+  growth: number;
+  selfIntroReady: number;
+  keywords: string[];
+  summary: string;
+};
+
+export const DEFAULT_DASHBOARD_SCHEDULE_ENTRIES: DashboardScheduleEntry[] = [
+  { id: 1, date: 10, title: "LX세미콘 면접 사전 점검", type: "interview", time: "19:30", company: "LX세미콘" },
+  { id: 2, date: 11, title: "LX세미콘 1차 면접", type: "interview", time: "10:00", company: "LX세미콘" },
+  { id: 3, date: 12, title: "리벨리온 과제 제출", type: "task", time: "20:00", company: "리벨리온" },
+  { id: 4, date: 14, title: "삼성전자 DS 자기소개서 마감", type: "deadline", time: "18:00", company: "삼성전자 DS" },
+  { id: 5, date: 15, title: "텔레칩스 면접 리허설", type: "interview", time: "14:00", company: "텔레칩스" },
+  { id: 6, date: 16, title: "파두 통근 메모 보완", type: "task", time: "09:00", company: "파두" },
+  { id: 7, date: 18, title: "SK하이닉스 인적성", type: "test", time: "13:00", company: "SK하이닉스" },
+];
+
+export const DEFAULT_DASHBOARD_JOB_POSTINGS: DashboardJobPostingEntry[] = [
+  {
+    id: 101,
+    targetCompanyId: 1,
+    company: "삼성전자 DS",
+    title: "RTL 설계 엔지니어",
+    role: "rtl-design",
+    deadline: "2026-03-14",
+    stage: "서류 제출",
+    fit: 88,
+    burden: 72,
+    urgency: 92,
+    locationFit: 78,
+    growth: 90,
+    selfIntroReady: 76,
+    keywords: ["Verilog", "SystemVerilog", "AMBA AXI", "Timing"],
+    summary: "집중 지원 공고입니다. 디버깅 사례와 signoff handoff 경험을 구체적으로 적는 편이 좋습니다.",
+  },
+  {
+    id: 102,
+    targetCompanyId: 2,
+    company: "SK하이닉스",
+    title: "메모리 컨트롤러 RTL / 검증",
+    role: "memory-controller",
+    deadline: "2026-03-18",
+    stage: "인적성 예정",
+    fit: 84,
+    burden: 69,
+    urgency: 74,
+    locationFit: 62,
+    growth: 89,
+    selfIntroReady: 70,
+    keywords: ["HBM", "DDR", "FPGA", "Python"],
+    summary: "컨트롤러 프로젝트에서 무엇을 직접 개선했는지 수치와 결과를 함께 보여주면 좋습니다.",
+  },
+  {
+    id: 103,
+    targetCompanyId: 3,
+    company: "LX세미콘",
+    title: "디스플레이 SoC 검증 엔지니어",
+    role: "display-validation",
+    deadline: "2026-03-12",
+    stage: "1차 면접",
+    fit: 80,
+    burden: 61,
+    urgency: 95,
+    locationFit: 86,
+    growth: 74,
+    selfIntroReady: 82,
+    keywords: ["SystemVerilog", "MIPI", "Display", "Verification"],
+    summary: "가까운 일정입니다. 디스플레이 파이프라인과 협업 방식을 먼저 정리해 두는 편이 좋습니다.",
+  },
+  {
+    id: 104,
+    targetCompanyId: 4,
+    company: "리벨리온",
+    title: "AI 가속기 RTL 엔지니어",
+    role: "ai-accelerator",
+    deadline: "2026-03-20",
+    stage: "과제",
+    fit: 82,
+    burden: 84,
+    urgency: 80,
+    locationFit: 88,
+    growth: 96,
+    selfIntroReady: 68,
+    keywords: ["Datapath", "NPU", "Performance", "SystemC"],
+    summary: "도전 과제가 있습니다. 아키텍처 맥락과 처리량 개선 스토리를 함께 설명해야 합니다.",
+  },
+  {
+    id: 105,
+    targetCompanyId: 5,
+    company: "텔레칩스",
+    title: "Automotive SoC 엔지니어",
+    role: "automotive-soc",
+    deadline: "2026-03-22",
+    stage: "2차 면접",
+    fit: 79,
+    burden: 64,
+    urgency: 60,
+    locationFit: 87,
+    growth: 72,
+    selfIntroReady: 86,
+    keywords: ["AMBA", "PCIe", "Automotive", "Integration"],
+    summary: "안정적인 선택지입니다. 통합과 프로토콜 검증 경험을 정리해 두면 좋습니다.",
+  },
+  {
+    id: 106,
+    targetCompanyId: 6,
+    company: "파두",
+    title: "SSD 컨트롤러 설계 엔지니어",
+    role: "ssd-controller",
+    deadline: "2026-03-16",
+    stage: "서류 합격",
+    fit: 77,
+    burden: 58,
+    urgency: 85,
+    locationFit: 90,
+    growth: 78,
+    selfIntroReady: 73,
+    keywords: ["Controller", "DMA", "PCIe", "Storage"],
+    summary: "현실적인 백업 카드입니다. 데이터패스와 검증 오너십을 중심으로 이력을 정리해 두면 좋습니다.",
+  },
+];

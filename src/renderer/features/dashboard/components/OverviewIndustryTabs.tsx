@@ -1,27 +1,27 @@
 import type { DashboardController } from "../useDashboardController";
 import { IndustryNewsSection } from "./industry/IndustryNewsSection";
-import { AnalyticsInsightsSection } from "./overview/AnalyticsInsightsSection";
 import { CompetencySection } from "./overview/CompetencySection";
-import { FunnelSection } from "./overview/FunnelSection";
-import { OverviewKpiGridSection } from "./overview/OverviewKpiGridSection";
+import { OverviewActionFlowSection } from "./overview/OverviewActionFlowSection";
 import { PipelineSection } from "./overview/PipelineSection";
-import { PriorityPostingsSection } from "./overview/PriorityPostingsSection";
+import { TopActionsSection } from "./overview/TopActionsSection";
+import { UrgentItemsSection } from "./overview/UrgentItemsSection";
 import { WeeklyTrendSection } from "./overview/WeeklyTrendSection";
 
 export function OverviewTab({ controller }: { controller: DashboardController }) {
   return (
     <div className="space-y-6">
-      <OverviewKpiGridSection overview={controller.overview} />
-
-      <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-        <PriorityPostingsSection overview={controller.overview} />
-        <FunnelSection overview={controller.overview} />
+      <div className="grid gap-6 xl:grid-cols-[1.45fr_0.95fr]">
+        <OverviewActionFlowSection overview={controller.overview} />
+        <TopActionsSection overview={controller.overview} />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_1fr_1fr]">
+      <div className="grid gap-6">
         <PipelineSection overview={controller.overview} />
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[1.35fr_1fr]">
         <CompetencySection overview={controller.overview} />
-        <AnalyticsInsightsSection overview={controller.overview} />
+        <UrgentItemsSection overview={controller.overview} />
       </div>
 
       <WeeklyTrendSection overview={controller.overview} />

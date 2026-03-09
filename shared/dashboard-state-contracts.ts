@@ -1,8 +1,14 @@
+import type {
+  DashboardJobPostingEntry,
+  DashboardScheduleEntry,
+} from "./dashboard-editable-data.js";
+
 export type DashboardTab =
   | "overview"
   | "industry"
   | "kanban"
   | "strategy"
+  | "postings"
   | "company"
   | "jdscanner"
   | "offer"
@@ -47,7 +53,14 @@ export type DashboardLocalState = {
     flashcardMode: "default" | "shuffled";
     activeFlashcardIndex: number | null;
     selectedScheduleId: number;
+    selectedJobPostingId: number;
     selectedCoverLetterName: string | null;
+  };
+  calendar: {
+    scheduleEntries: DashboardScheduleEntry[];
+  };
+  postings: {
+    entries: DashboardJobPostingEntry[];
   };
   location: {
     routeOrigin: string;
@@ -64,6 +77,8 @@ export type DashboardLocalState = {
     text: string;
   };
   overview: {
+    query: string;
+    companyFilter: string;
     taskChecked: Record<number, boolean>;
   };
 };

@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { mapScheduleToCalendarEvents } from "../../calendar/calendarEventMapper";
 import { analyzeJdText } from "../../jdScanner/analyzeJdText";
+import { buildOverviewCollections } from "../domain/overviewSelectors";
 import {
   buildFlashcardDeck,
   buildPortfolioKeywordSet,
@@ -9,6 +10,8 @@ import {
   getUpcomingSchedule,
 } from "../domain/dashboardSelectors";
 import type {
+  ApplicationChecklistItem,
+  CompanyTarget,
   DashboardLocalState,
   EnrichedPosting,
   FlashcardItem,
@@ -26,6 +29,8 @@ type KeywordEntry = {
 type UseDashboardDerivedCollectionsOptions = {
   dashboardState: DashboardLocalState;
   postings: EnrichedPosting[];
+  companyTargets: CompanyTarget[];
+  checklistTemplates: Record<number, ApplicationChecklistItem[]>;
   flashcards: FlashcardItem[];
   industryNews: IndustryNewsItem[];
   schedule: ScheduleEvent[];
@@ -40,6 +45,8 @@ type UseDashboardDerivedCollectionsOptions = {
 export function useDashboardDerivedCollections({
   dashboardState,
   postings,
+  companyTargets,
+  checklistTemplates,
   flashcards,
   industryNews,
   schedule,
@@ -84,12 +91,30 @@ export function useDashboardDerivedCollections({
     [dashboardState.ui.postingCompanyFilter, dashboardState.ui.postingQuery, postings],
   );
 
-  const urgentPostings = useMemo(
+  const overviewCollections = useMemo(
     () =>
-      [...postings]
-        .sort((left, right) => left.daysLeft - right.daysLeft)
-        .slice(0, 3),
-    [postings],
+      buildOverviewCollections({
+        postings,
+        companyTargets,
+        checklistCollection: dashboardState.checklists.applicationChecklists,
+        checklistTemplates,
+        schedule,
+        query: dashboardState.overview.query,
+        companyFilter: dashboardState.overview.companyFilter,
+        referenceDate,
+        portfolioKeywordSet,
+      }),
+    [
+      companyTargets,
+      checklistTemplates,
+      dashboardState.overview.companyFilter,
+      dashboardState.overview.query,
+      dashboardState.checklists.applicationChecklists,
+      postings,
+      portfolioKeywordSet,
+      referenceDate,
+      schedule,
+    ],
   );
 
   const upcomingSchedule = useMemo(
@@ -111,7 +136,7 @@ export function useDashboardDerivedCollections({
     jdResult,
     filteredIndustryNews,
     filteredPostings,
-    urgentPostings,
+    overviewCollections,
     upcomingSchedule,
     calendarEvents,
     flashcardDeck,

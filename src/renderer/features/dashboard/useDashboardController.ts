@@ -7,14 +7,12 @@ import {
   CALENDAR_MONTH_INDEX,
   CALENDAR_YEAR,
   DASHBOARD_REFERENCE_DATE,
-  schedule,
 } from "./domain/seeds/calendarSeed";
-import { checklistTemplates } from "./domain/seeds/checklistSeed";
+import { buildChecklistTemplates } from "./domain/seeds/checklistSeed";
 import {
   companyDetails,
   companySlugMap,
   companyTargets,
-  jobPostings,
 } from "./domain/seeds/companySeed";
 import {
   essayQuestions,
@@ -32,6 +30,7 @@ import {
   enrichPostings,
   getChecklistItems,
 } from "./domain/dashboardSelectors";
+import { buildCompanyTargetsFromPostings } from "./domain/companyTargetSelectors";
 import {
   createDashboardActions,
   createSetUiState,
@@ -53,10 +52,21 @@ const FALLBACK_OFFER_B = offerCatalog[1]?.id ?? FALLBACK_OFFER_A;
 export function useDashboardController() {
   const [dashboardState, setDashboardState] = useState(buildDefaultDashboardState);
   const setUiState = useMemo(() => createSetUiState(setDashboardState), []);
+  const scheduleEntries = dashboardState.calendar.scheduleEntries;
 
   const postings = useMemo(
-    () => enrichPostings(jobPostings, DASHBOARD_REFERENCE_DATE),
-    [],
+    () => enrichPostings(dashboardState.postings.entries, DASHBOARD_REFERENCE_DATE),
+    [dashboardState.postings.entries],
+  );
+
+  const resolvedCompanyTargets = useMemo(
+    () => buildCompanyTargetsFromPostings(companyTargets, postings),
+    [postings],
+  );
+
+  const checklistTemplates = useMemo(
+    () => buildChecklistTemplates(postings),
+    [postings],
   );
 
   const {
@@ -66,13 +76,19 @@ export function useDashboardController() {
   } = useMemo(
     () =>
       buildDashboardCompanySnapshot({
-        companyTargets,
+        companyTargets: resolvedCompanyTargets,
         postings,
         selectedCompanyId: dashboardState.ui.selectedCompanyId,
+        selectedJobPostingId: dashboardState.ui.selectedJobPostingId,
         companySlugMap,
         coverLetterSlugify,
       }),
-    [dashboardState.ui.selectedCompanyId, postings],
+    [
+      dashboardState.ui.selectedCompanyId,
+      dashboardState.ui.selectedJobPostingId,
+      postings,
+      resolvedCompanyTargets,
+    ],
   );
 
   const coverLetterWorkspace = useCoverLetterWorkspace({
@@ -89,7 +105,7 @@ export function useDashboardController() {
     companyCoverLetters,
     selectedCompanySlug,
   } = useSelectedCompanyModel({
-    companies: companyTargets,
+    companies: resolvedCompanyTargets,
     companyDetails,
     selectedCompanyId: dashboardState.ui.selectedCompanyId,
     postings,
@@ -99,7 +115,7 @@ export function useDashboardController() {
   });
 
   const selectedCompanyPosting =
-    relatedPostings.find((posting) => posting.targetCompanyId === selectedCompany.id) ??
+    relatedPostings.find((posting) => posting.id === dashboardState.ui.selectedJobPostingId) ??
     snapshotCompanyPosting;
 
   const {
@@ -117,9 +133,9 @@ export function useDashboardController() {
     dashboardState,
     setDashboardState,
     postings,
-    companyTargets,
+    companyTargets: resolvedCompanyTargets,
     essayQuestions,
-    schedule,
+    schedule: scheduleEntries,
     offerCatalog,
     fallbackOfferA: FALLBACK_OFFER_A,
     fallbackOfferB: FALLBACK_OFFER_B,
@@ -137,16 +153,18 @@ export function useDashboardController() {
     jdResult,
     filteredIndustryNews,
     filteredPostings,
-    urgentPostings,
+    overviewCollections,
     upcomingSchedule,
     calendarEvents,
     flashcardDeck,
   } = useDashboardDerivedCollections({
     dashboardState,
     postings,
+    companyTargets: resolvedCompanyTargets,
+    checklistTemplates,
     flashcards,
     industryNews,
-    schedule,
+    schedule: scheduleEntries,
     portfolioData,
     jdScan,
     jdKeywordLibrary,
@@ -159,6 +177,7 @@ export function useDashboardController() {
     activeFlashcardIndex,
     activeFlashcard,
     selectedScheduleEvent,
+    selectedJobPosting,
     selectedChecklistPosting,
     selectedEssay,
     selectedOfferA,
@@ -170,7 +189,7 @@ export function useDashboardController() {
       buildDashboardSelectionState({
         dashboardState,
         postings,
-        schedule,
+        schedule: scheduleEntries,
         essayQuestions,
         offerCatalog,
         flashcardDeck,
@@ -178,7 +197,7 @@ export function useDashboardController() {
         commuteNotesSeed,
         originPresets,
       }),
-    [dashboardState, flashcardDeck, postings, selectedCompany],
+    [dashboardState, flashcardDeck, postings, scheduleEntries, selectedCompany],
   );
 
   const checklistItems = getChecklistItems(
@@ -204,7 +223,7 @@ export function useDashboardController() {
         selectedCompanyId: selectedCompany.id,
         selectedChecklistPostingId: selectedChecklistPosting.id,
         activeFlashcardQuestion: activeFlashcard?.q ?? null,
-        companyTargets,
+        companyTargets: resolvedCompanyTargets,
         checklistTemplates,
         commuteNotesSeed,
         transitDirectionsUrl,
@@ -214,6 +233,7 @@ export function useDashboardController() {
       activeFlashcard?.q,
       selectedChecklistPosting.id,
       selectedCompany.id,
+      resolvedCompanyTargets,
       setJdScan,
       setUiState,
       transitDirectionsUrl,
@@ -228,11 +248,13 @@ export function useDashboardController() {
     coverLetterWorkspace,
     filteredPostings,
     filteredIndustryNews,
-    urgentPostings,
+    overviewCollections,
+    companyTargets: resolvedCompanyTargets,
     selectedCompany,
     selectedCompanyDetail,
     selectedCompanySlug,
     selectedCompanyPosting,
+    selectedJobPosting,
     relatedPostings,
     companyCoverLetters,
     selectedOfferA,
