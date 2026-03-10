@@ -32,6 +32,8 @@ export type DashboardShellCopy = {
   brandSubtitle: string;
   workspaceTitle: string;
   workspaceSubtitle: string;
+  userNameFieldLabel: string;
+  userNamePlaceholder: string;
   headerBadgeLabel: string;
   saveButtonLabel: string;
   helpButtonLabel: string;
@@ -143,6 +145,8 @@ export const DASHBOARD_SHELL_COPY: DashboardShellCopy = {
   brandSubtitle: "Structured Dashboard",
   workspaceTitle: "지원자 워크스페이스",
   workspaceSubtitle: "RTL Design / Verification",
+  userNameFieldLabel: "사용자 이름",
+  userNamePlaceholder: "이름 입력",
   headerBadgeLabel: "구조화 리팩토링 반영",
   saveButtonLabel: "상태 저장",
   helpButtonLabel: "도움말",

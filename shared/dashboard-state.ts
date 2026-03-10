@@ -92,6 +92,7 @@ export function buildDefaultDashboardState(): DashboardLocalState {
   return {
     ui: {
       activeTab: "overview",
+      userName: "지원자",
       postingQuery: "",
       postingCompanyFilter: "all",
       selectedCompanyId: 1,
@@ -170,6 +171,7 @@ export function hydrateDashboardState(payload: unknown): DashboardLocalState {
   return {
     ui: {
       ...ui,
+      userName: typeof ui.userName === "string" ? ui.userName : defaults.ui.userName,
       activeFlashcardIndex:
         typeof ui.activeFlashcardIndex === "number" || ui.activeFlashcardIndex === null
           ? ui.activeFlashcardIndex

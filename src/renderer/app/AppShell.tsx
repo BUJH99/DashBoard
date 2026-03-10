@@ -1,12 +1,32 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { Code2, Info, Save } from "lucide-react";
+import { Code2, Info, Save, UserRound } from "lucide-react";
 import type { DashboardTab } from "../../../shared/dashboard-state-contracts";
 import type { DashboardShellCopy, DashboardTabMeta } from "../features/dashboard/config/dashboardChrome";
 import type { NavSection } from "../features/dashboard/types";
 import { ScrollArea } from "../components/ui/ScrollArea";
 import { Pill } from "../components/ui/primitives";
 import { cn } from "../lib/cn";
+
+function getDisplayUserName(userName: string) {
+  const trimmedName = userName.trim();
+
+  return trimmedName.length > 0 ? trimmedName : "지원자";
+}
+
+function getUserInitials(userName: string) {
+  const trimmedName = getDisplayUserName(userName);
+  const segments = trimmedName.split(/\s+/).filter(Boolean);
+
+  if (segments.length >= 2) {
+    return segments
+      .slice(0, 2)
+      .map((segment) => segment[0]?.toUpperCase() ?? "")
+      .join("");
+  }
+
+  return trimmedName.slice(0, 2).toUpperCase();
+}
 
 function NavItem({
   icon: Icon,
@@ -65,6 +85,8 @@ type AppShellProps = {
   setActiveTab: (tab: DashboardTab) => void;
   activeMeta: DashboardTabMeta;
   shellCopy: DashboardShellCopy;
+  userName: string;
+  onUserNameChange: (value: string) => void;
   selectedCompanyName: string;
   dashboardStateMessage: string | null;
   onSaveDashboardState: () => void;
@@ -79,11 +101,16 @@ export function AppShell({
   setActiveTab,
   activeMeta,
   shellCopy,
+  userName,
+  onUserNameChange,
   selectedCompanyName,
   dashboardStateMessage,
   onSaveDashboardState,
   children,
 }: AppShellProps) {
+  const displayUserName = getDisplayUserName(userName);
+  const userInitials = getUserInitials(userName);
+
   return (
     <div className="flex h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_#f8fbff,_#eef4fb_55%,_#e8eef7)] font-sans text-slate-900">
       <aside
@@ -165,7 +192,7 @@ export function AppShell({
                 isSidebarExpanded ? "h-10 w-10 text-sm" : "h-9 w-9 text-[13px]",
               )}
             >
-              HW
+              {userInitials}
             </div>
             <div
               className={cn(
@@ -175,7 +202,7 @@ export function AppShell({
                   : "max-h-0 max-w-0 opacity-0",
               )}
             >
-              <p className="text-[14px] font-black tracking-[-0.02em] text-slate-950">{shellCopy.workspaceTitle}</p>
+              <p className="truncate text-[14px] font-black tracking-[-0.02em] text-slate-950">{displayUserName}</p>
               <p className="text-[10px] font-medium tracking-[0.01em] text-slate-500">{shellCopy.workspaceSubtitle}</p>
             </div>
           </div>
@@ -189,6 +216,22 @@ export function AppShell({
               <p className="mt-1 text-[14px] text-slate-500">{activeMeta.subtitle}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              <label className="group inline-flex items-center gap-3 rounded-[18px] border border-slate-200 bg-white px-3 py-2 shadow-[0_10px_24px_rgba(148,163,184,0.08)] transition hover:border-slate-300">
+                <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+                  <UserRound className="h-4 w-4" />
+                </span>
+                <span className="grid gap-0.5">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                    {shellCopy.userNameFieldLabel}
+                  </span>
+                  <input
+                    value={userName}
+                    onChange={(event) => onUserNameChange(event.target.value.slice(0, 24))}
+                    placeholder={shellCopy.userNamePlaceholder}
+                    className="w-[132px] border-0 bg-transparent p-0 text-sm font-semibold text-slate-900 outline-none placeholder:text-slate-400"
+                  />
+                </span>
+              </label>
               <Pill className="border-cyan-200 bg-cyan-50 text-cyan-700">{shellCopy.headerBadgeLabel}</Pill>
               <Pill className="border-slate-200 bg-slate-100 text-slate-700">{selectedCompanyName}</Pill>
               {dashboardStateMessage ? (

@@ -59,6 +59,8 @@ export default function DashboardApp() {
       setActiveTab={controller.setActiveTab}
       activeMeta={activeMeta}
       shellCopy={DASHBOARD_SHELL_COPY}
+      userName={controller.dashboardState.ui.userName}
+      onUserNameChange={(value) => controller.setUiState("userName", value)}
       selectedCompanyName={controller.companies.selectedCompany.name}
       dashboardStateMessage={dashboardStateMessage}
       onSaveDashboardState={() => void controller.saveDashboardState()}

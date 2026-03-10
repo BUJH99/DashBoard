@@ -59,6 +59,7 @@ export type CompanyAnalysisEntry = {
 export type DashboardLocalState = {
   ui: {
     activeTab: DashboardTab;
+    userName: string;
     postingQuery: string;
     postingCompanyFilter: string;
     selectedCompanyId: number;
