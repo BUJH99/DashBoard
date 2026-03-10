@@ -57,7 +57,9 @@ export type BuildDashboardViewModelOptions = {
   selectedOfferB: OfferCatalogEntry;
   selectedCommuteNote: CommuteNote;
   transitDirectionsUrl: string;
+  allPostings: EnrichedPosting[];
   checklistItems: ApplicationChecklistItem[];
+  checklistTemplates: Record<number, ApplicationChecklistItem[]>;
   selectedChecklistPosting: EnrichedPosting;
   flashcardDeck: FlashcardItem[];
   activeFlashcard: FlashcardItem | null;

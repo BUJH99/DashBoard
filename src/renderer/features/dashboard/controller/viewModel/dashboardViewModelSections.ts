@@ -1,3 +1,4 @@
+import { getChecklistItems } from "../../domain/dashboardSelectors";
 import {
   analyticsInsights,
   competencyMetrics,
@@ -18,8 +19,23 @@ import {
   contributionHeatmapSeed,
   portfolioData,
 } from "../../domain/seeds/portfolioSeed";
+import type { ApplicationChecklistItem } from "../../types";
 import { buildIndustryTags } from "../dashboardMessages";
 import type { BuildDashboardViewModelOptions } from "./dashboardViewModelTypes";
+
+function buildChecklistProgress(items: ApplicationChecklistItem[]) {
+  const totalCount = items.length;
+  const doneCount = items.filter((item) => item.done).length;
+  const blockedCount = items.filter((item) => item.blocked).length;
+
+  return {
+    totalCount,
+    doneCount,
+    blockedCount,
+    remainingCount: Math.max(totalCount - doneCount, 0),
+    completionRate: totalCount === 0 ? 0 : Math.round((doneCount / totalCount) * 100),
+  };
+}
 
 export function buildOverviewViewModel({
   overviewCollections,
@@ -148,13 +164,59 @@ export function buildPortfolioViewModel({
 }
 
 export function buildChecklistViewModel({
+  dashboardState,
+  allPostings,
+  checklistTemplates,
   selectedChecklistPosting,
   checklistItems,
   actions,
 }: BuildDashboardViewModelOptions) {
+  const postingSummaries = allPostings.map((posting) => {
+    const items = getChecklistItems(
+      dashboardState.checklists.applicationChecklists,
+      checklistTemplates,
+      posting.id,
+    );
+    const progress = buildChecklistProgress(items);
+
+    return {
+      id: posting.id,
+      company: posting.company,
+      title: posting.title,
+      stage: posting.stage,
+      deadline: posting.deadline,
+      daysLeft: posting.daysLeft,
+      priority: posting.priority,
+      selfIntroReady: posting.selfIntroReady,
+      summary: posting.summary,
+      totalCount: progress.totalCount,
+      doneCount: progress.doneCount,
+      blockedCount: progress.blockedCount,
+      remainingCount: progress.remainingCount,
+      completionRate: progress.completionRate,
+      isSelected: posting.id === selectedChecklistPosting.id,
+    };
+  });
+  const totalChecklistItemCount = postingSummaries.reduce((sum, posting) => sum + posting.totalCount, 0);
+  const totalDoneCount = postingSummaries.reduce((sum, posting) => sum + posting.doneCount, 0);
+  const selectedProgress = buildChecklistProgress(checklistItems);
+  const blockedPostingCount = postingSummaries.filter((posting) => posting.blockedCount > 0).length;
+  const atRiskPostingCount = postingSummaries.filter(
+    (posting) => posting.daysLeft <= 2 && (posting.completionRate < 100 || posting.blockedCount > 0),
+  ).length;
+
   return {
     selectedPosting: selectedChecklistPosting,
     checklistItems,
+    postingSummaries,
+    selectedProgress,
+    summaryMetrics: {
+      overallCompletionRate:
+        totalChecklistItemCount === 0 ? 0 : Math.round((totalDoneCount / totalChecklistItemCount) * 100),
+      blockedPostingCount,
+      atRiskPostingCount,
+      totalPostingCount: postingSummaries.length,
+    },
     setSelectedPostingId: actions.selectJobPosting,
     toggleChecklistItemDone: actions.toggleChecklistItemDone,
     toggleChecklistItemBlocked: actions.toggleChecklistItemBlocked,

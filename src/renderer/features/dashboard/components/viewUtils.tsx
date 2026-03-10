@@ -65,6 +65,26 @@ export function getChecklistTone(category: string) {
   return "border-emerald-200 bg-emerald-50 text-emerald-700";
 }
 
+export function getPostingStageTone(stage: string) {
+  if (stage.includes("면접")) {
+    return "border-violet-200 bg-violet-50 text-violet-700";
+  }
+  if (stage.includes("인적성") || stage.includes("과제")) {
+    return "border-amber-200 bg-amber-50 text-amber-700";
+  }
+  if (stage.includes("합격")) {
+    return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  }
+  if (stage.includes("제출")) {
+    return "border-slate-200 bg-slate-100 text-slate-700";
+  }
+  return "border-cyan-200 bg-cyan-50 text-cyan-700";
+}
+
+export function formatDueBadge(daysLeft: number) {
+  return daysLeft <= 0 ? "D-Day" : `D-${daysLeft}`;
+}
+
 export function TabButton({
   active,
   label,

@@ -17,7 +17,7 @@ export function InterviewTab({ controller }: { controller: DashboardController }
   );
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[0.52fr_0.48fr]">
+    <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr] xl:items-stretch">
       <InterviewFlashcardSection interview={controller.interview} />
       <EssayLinkSection essays={controller.essays} linkedExperiences={linkedExperiences} />
     </div>

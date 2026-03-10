@@ -3,6 +3,7 @@ import {
   GraduationCap,
   NotebookTabs,
 } from "lucide-react";
+import { cn } from "../../../lib/cn";
 import { SurfaceCard } from "../../../components/ui/primitives";
 import type { DashboardController } from "../useDashboardController";
 import { ChecklistBoardSection } from "./checklist/ChecklistBoardSection";
@@ -46,6 +47,34 @@ function PortfolioSubTabButton({
       <Icon className="h-4 w-4" />
       <span>{label}</span>
     </button>
+  );
+}
+
+function ChecklistSummaryCard({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: "default" | "danger" | "warning";
+}) {
+  return (
+    <SurfaceCard className="overflow-hidden border-slate-200/80 bg-[linear-gradient(180deg,_rgba(255,255,255,0.98),_rgba(244,247,251,0.92))] px-5 py-4 shadow-[0_16px_36px_rgba(148,163,184,0.12)]">
+      <p className="text-sm font-semibold text-slate-400">{label}</p>
+      <p
+        className={cn(
+          "mt-3 text-[42px] font-black tracking-[-0.04em]",
+          tone === "danger"
+            ? "text-rose-600"
+            : tone === "warning"
+              ? "text-amber-600"
+              : "text-slate-900",
+        )}
+      >
+        {value}
+      </p>
+    </SurfaceCard>
   );
 }
 
@@ -104,9 +133,29 @@ export function PortfolioTab({ controller }: { controller: DashboardController }
 
 export function ChecklistTab({ controller }: { controller: DashboardController }) {
   return (
-    <div className="grid gap-6 xl:grid-cols-[0.38fr_0.62fr]">
-      <ChecklistTargetSection checklist={controller.checklist} companies={controller.companies} />
-      <ChecklistBoardSection checklist={controller.checklist} />
+    <div className="space-y-6">
+      <div className="grid gap-4 xl:grid-cols-[1fr_1fr_0.96fr]">
+        <ChecklistSummaryCard
+          label="전체 체크리스트 완성률"
+          value={`${controller.checklist.summaryMetrics.overallCompletionRate}%`}
+          tone="default"
+        />
+        <ChecklistSummaryCard
+          label="블로커 있는 공고"
+          value={String(controller.checklist.summaryMetrics.blockedPostingCount)}
+          tone="danger"
+        />
+        <ChecklistSummaryCard
+          label="오늘 제출 위험 공고"
+          value={String(controller.checklist.summaryMetrics.atRiskPostingCount)}
+          tone="warning"
+        />
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[0.36fr_0.64fr] xl:items-start">
+        <ChecklistTargetSection checklist={controller.checklist} />
+        <ChecklistBoardSection checklist={controller.checklist} />
+      </div>
     </div>
   );
 }

@@ -79,12 +79,12 @@ export const DASHBOARD_TAB_META: Record<DashboardTab, DashboardTabMeta> = {
     subtitle: "프로젝트, 학습, 학업 이력을 서류 관점에서 정리합니다.",
   },
   checklist: {
-    title: "지원 체크리스트",
-    subtitle: "공고별 제출 준비 상태와 메모를 추적합니다.",
+    title: "Application Checklist",
+    subtitle: "공고별 제출 준비 상태, 블로커, 메모를 한 화면에서 점검합니다.",
   },
   interview: {
-    title: "면접 준비",
-    subtitle: "플래시카드와 경험 연결을 통해 답변 밀도를 높입니다.",
+    title: "Interview Flashcards",
+    subtitle: "전공 면접 대비를 위한 Q&A와 답변 상태를 한 화면에서 관리합니다.",
   },
   calendar: {
     title: "캘린더",
