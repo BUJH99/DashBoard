@@ -15,6 +15,7 @@ import {
   PostingsTab,
   StrategyTab,
 } from "./components/ProcessTabs";
+import { ResumeTab } from "./components/resume/ResumeTab";
 import {
   DASHBOARD_NAV_SECTIONS,
   DASHBOARD_SHELL_COPY,
@@ -42,6 +43,7 @@ export default function DashboardApp() {
       offer: <OfferTab controller={controller} />,
       location: <LocationTab controller={controller} />,
       portfolio: <PortfolioTab controller={controller} />,
+      resume: <ResumeTab resume={controller.resume} />,
       checklist: <ChecklistTab controller={controller} />,
       interview: <InterviewTab controller={controller} />,
       calendar: <CalendarTab controller={controller} />,

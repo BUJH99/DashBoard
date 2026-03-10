@@ -1,3 +1,6 @@
+import type {
+  DashboardIndustryArticle,
+} from "../../../../../shared/dashboard-state-contracts";
 import type { DashboardJobPostingEntry } from "../../../../../shared/dashboard-editable-data";
 
 export type CompanyStrategyType = string;
@@ -73,12 +76,4 @@ export type EnrichedPosting = JobPosting & {
   daysLeft: number;
 };
 
-export type IndustryNewsItem = {
-  id: number;
-  title: string;
-  source: string;
-  date: string;
-  tag: string;
-  summary: string;
-  url: string;
-};
+export type IndustryNewsItem = DashboardIndustryArticle;

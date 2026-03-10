@@ -66,3 +66,13 @@ export type {
   WeeklyTrendPoint,
 } from "./models/overviewTypes";
 export type { PortfolioData } from "./models/portfolioTypes";
+export type {
+  ExperienceHubCategory,
+  ExperienceHubItem,
+  ResumeAwardItem,
+  ResumeCertificateItem,
+  ResumeEducationItem,
+  ResumeLanguageItem,
+  ResumePaperItem,
+  ResumeSkillSpecItem,
+} from "./models/portfolioTypes";

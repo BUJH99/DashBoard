@@ -1,3 +1,4 @@
+import { ALL_INDUSTRY_TAG } from "../../../../../shared/dashboard-state";
 import type { DashboardStateSync, IndustryNewsItem } from "../types";
 
 function formatSaveMessage(savedAt: string | null) {
@@ -27,6 +28,17 @@ export function buildDashboardStateMessage(sync: DashboardStateSync) {
   return formatSaveMessage(sync.lastSavedAt);
 }
 
-export function buildIndustryTags(news: IndustryNewsItem[]) {
-  return ["전체", ...Array.from(new Set(news.map((item) => item.tag)))];
+export function buildIndustryTags(news: IndustryNewsItem[], keywords?: string[]) {
+  const allowedKeywords = keywords
+    ? new Set(keywords.map((keyword) => keyword.trim()).filter(Boolean))
+    : null;
+  const tags = Array.from(
+    new Set(
+      news
+        .map((item) => item.tag)
+        .filter((tag) => tag && (!allowedKeywords || allowedKeywords.has(tag))),
+    ),
+  );
+
+  return [ALL_INDUSTRY_TAG, ...tags];
 }

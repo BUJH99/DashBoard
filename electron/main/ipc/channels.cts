@@ -6,9 +6,15 @@ export const IPC_CHANNELS = {
     save: "coverletters:save",
     remove: "coverletters:remove",
   },
+  coverLetterSpellcheck: {
+    check: "cover-letter-spellcheck:check",
+  },
   dashboardState: {
     read: "dashboard-state:read",
     save: "dashboard-state:save",
+  },
+  industryNews: {
+    crawl: "industry-news:crawl",
   },
   external: {
     openUrl: "external:open-url",

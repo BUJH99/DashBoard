@@ -10,9 +10,15 @@ const desktopApi: DesktopApi = {
     save: (payload) => ipcRenderer.invoke(IPC_CHANNELS.coverletters.save, payload),
     remove: (payload) => ipcRenderer.invoke(IPC_CHANNELS.coverletters.remove, payload),
   },
+  coverLetterSpellcheck: {
+    check: (payload) => ipcRenderer.invoke(IPC_CHANNELS.coverLetterSpellcheck.check, payload),
+  },
   dashboardState: {
     read: () => ipcRenderer.invoke(IPC_CHANNELS.dashboardState.read),
     save: (payload) => ipcRenderer.invoke(IPC_CHANNELS.dashboardState.save, payload),
+  },
+  industryNews: {
+    crawl: (payload) => ipcRenderer.invoke(IPC_CHANNELS.industryNews.crawl, payload),
   },
   external: {
     openUrl: (url) => ipcRenderer.invoke(IPC_CHANNELS.external.openUrl, url),

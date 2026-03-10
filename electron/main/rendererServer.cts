@@ -17,6 +17,8 @@ import {
   readDashboardState,
   saveDashboardState,
 } from "../storage/dashboardStateRepository.cjs";
+import { checkCoverLetterSpelling } from "../services/coverLetterSpellcheck.cjs";
+import { crawlIndustryNews } from "../services/industryNewsCrawler.cjs";
 
 let internalRendererServer: Server | null = null;
 let internalRendererUrl: string | null = null;
@@ -108,6 +110,12 @@ export async function startInternalRendererServer() {
         return;
       }
 
+      if (requestPath === "/api/cover-letter-spellcheck/check" && req.method === "POST") {
+        const payload = await readJsonBody(req);
+        sendJson(res, 200, await checkCoverLetterSpelling(payload));
+        return;
+      }
+
       if (requestPath === "/api/dashboard-state/read" && req.method === "GET") {
         sendJson(res, 200, {
           state: await readDashboardState(),
@@ -122,6 +130,12 @@ export async function startInternalRendererServer() {
           state: await saveDashboardState(payload),
           savedAt: new Date().toISOString(),
         });
+        return;
+      }
+
+      if (requestPath === "/api/industry-news/crawl" && req.method === "POST") {
+        const payload = await readJsonBody(req);
+        sendJson(res, 200, await crawlIndustryNews(payload));
         return;
       }
 

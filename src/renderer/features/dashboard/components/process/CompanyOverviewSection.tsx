@@ -69,6 +69,11 @@ function buildPortfolioKeywordSet() {
     addKeyword(project.name);
     project.tech.forEach(addKeyword);
   });
+  portfolioData.experienceHub.forEach((experience) => {
+    addKeyword(experience.title);
+    experience.tags.forEach(addKeyword);
+    experience.keywords.forEach(addKeyword);
+  });
 
   return keywords;
 }

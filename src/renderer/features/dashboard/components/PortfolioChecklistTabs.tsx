@@ -2,6 +2,7 @@ import {
   BriefcaseBusiness,
   GraduationCap,
   NotebookTabs,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "../../../lib/cn";
 import { SurfaceCard } from "../../../components/ui/primitives";
@@ -9,6 +10,7 @@ import type { DashboardController } from "../useDashboardController";
 import { ChecklistBoardSection } from "./checklist/ChecklistBoardSection";
 import { ChecklistTargetSection } from "./checklist/ChecklistTargetSection";
 import { PortfolioAcademicsSection } from "./portfolio/PortfolioAcademicsSection";
+import { PortfolioExperienceHubSection } from "./portfolio/PortfolioExperienceHubSection";
 import { PortfolioHeaderSection } from "./portfolio/PortfolioHeaderSection";
 import { PortfolioNotesSection } from "./portfolio/PortfolioNotesSection";
 import { PortfolioProjectSection } from "./portfolio/PortfolioProjectSection";
@@ -23,7 +25,7 @@ function PortfolioSubTabButton({
 }: {
   active: boolean;
   label: string;
-  tone: "blue" | "emerald" | "violet";
+  tone: "blue" | "emerald" | "violet" | "amber";
   icon: typeof BriefcaseBusiness;
   onClick: () => void;
 }) {
@@ -32,6 +34,8 @@ function PortfolioSubTabButton({
       ? "text-blue-600 after:bg-blue-600"
       : tone === "emerald"
         ? "text-emerald-600 after:bg-emerald-600"
+        : tone === "amber"
+          ? "text-amber-600 after:bg-amber-600"
         : "text-violet-600 after:bg-violet-600";
 
   return (
@@ -87,6 +91,13 @@ export function PortfolioTab({ controller }: { controller: DashboardController }
         <div className="border-b border-slate-200 px-6 pt-5">
           <div className="flex flex-wrap items-center gap-6">
             <PortfolioSubTabButton
+              active={controller.portfolio.activeSubTab === "experience"}
+              label="경험 허브"
+              tone="amber"
+              icon={Sparkles}
+              onClick={() => controller.portfolio.setActiveSubTab("experience")}
+            />
+            <PortfolioSubTabButton
               active={controller.portfolio.activeSubTab === "showcase"}
               label="프로젝트 Showcase"
               tone="blue"
@@ -111,6 +122,10 @@ export function PortfolioTab({ controller }: { controller: DashboardController }
         </div>
 
         <div className="p-6">
+          {controller.portfolio.activeSubTab === "experience" ? (
+            <PortfolioExperienceHubSection portfolio={controller.portfolio} />
+          ) : null}
+
           {controller.portfolio.activeSubTab === "showcase" ? (
             <PortfolioProjectSection portfolio={controller.portfolio} />
           ) : null}

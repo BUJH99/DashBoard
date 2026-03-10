@@ -80,6 +80,10 @@ export const DASHBOARD_TAB_META: Record<DashboardTab, DashboardTabMeta> = {
     title: "포트폴리오",
     subtitle: "프로젝트, 학습, 학업 이력을 서류 관점에서 정리합니다.",
   },
+  resume: {
+    title: "이력서",
+    subtitle: "경험 허브에서 고른 경험을 이력서 구조와 정량 bullet로 다듬습니다.",
+  },
   checklist: {
     title: "Application Checklist",
     subtitle: "공고별 제출 준비 상태, 블로커, 메모를 한 화면에서 점검합니다.",
@@ -127,6 +131,7 @@ export const DASHBOARD_NAV_SECTIONS = [
     title: "자료 준비",
     items: [
       { id: "portfolio", label: "포트폴리오", icon: User },
+      { id: "resume", label: "이력서", icon: FileText },
       { id: "checklist", label: "체크리스트", icon: Terminal },
       { id: "coverletters", label: "자기소개서", icon: FileText },
     ] satisfies NavItem[],

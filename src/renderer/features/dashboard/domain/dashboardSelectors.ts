@@ -1,4 +1,5 @@
 import { ALL_INDUSTRY_TAG } from "../../../../../shared/dashboard-state";
+import { normalizeKeyword } from "../../../../../shared/keywordNormalization";
 import type {
   ApplicationChecklistItem,
   DashboardLocalState,
@@ -82,12 +83,13 @@ export function buildPortfolioKeywordSet(portfolio: PortfolioData) {
     addKeyword(project.name);
     project.tech.forEach(addKeyword);
   });
+  portfolio.experienceHub.forEach((experience) => {
+    addKeyword(experience.title);
+    experience.tags.forEach(addKeyword);
+    experience.keywords.forEach(addKeyword);
+  });
 
   return keywords;
-}
-
-export function normalizeKeyword(value: string) {
-  return value.toLowerCase().replace(/[^\p{Letter}\p{Number}]+/gu, "");
 }
 
 export function getChecklistItems(
@@ -126,3 +128,5 @@ export function buildFlashcardDeck(cards: FlashcardItem[], mode: "default" | "sh
 
   return [...cards].sort((left, right) => left.q.localeCompare(right.q, "ko-KR"));
 }
+
+export { normalizeKeyword };

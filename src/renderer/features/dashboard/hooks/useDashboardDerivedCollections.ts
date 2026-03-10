@@ -15,7 +15,6 @@ import type {
   DashboardLocalState,
   EnrichedPosting,
   FlashcardItem,
-  IndustryNewsItem,
   JdScanState,
   PortfolioData,
   ScheduleEvent,
@@ -32,7 +31,6 @@ type UseDashboardDerivedCollectionsOptions = {
   companyTargets: CompanyTarget[];
   checklistTemplates: Record<number, ApplicationChecklistItem[]>;
   flashcards: FlashcardItem[];
-  industryNews: IndustryNewsItem[];
   schedule: ScheduleEvent[];
   portfolioData: PortfolioData;
   jdScan: JdScanState;
@@ -48,7 +46,6 @@ export function useDashboardDerivedCollections({
   companyTargets,
   checklistTemplates,
   flashcards,
-  industryNews,
   schedule,
   portfolioData,
   jdScan,
@@ -71,8 +68,8 @@ export function useDashboardDerivedCollections({
   );
 
   const filteredIndustryNews = useMemo(
-    () => filterIndustryNews(industryNews, dashboardState.ui.industryFilter),
-    [dashboardState.ui.industryFilter, industryNews],
+    () => filterIndustryNews(dashboardState.industry.articles, dashboardState.ui.industryFilter),
+    [dashboardState.industry.articles, dashboardState.ui.industryFilter],
   );
 
   const filteredPostings = useMemo(

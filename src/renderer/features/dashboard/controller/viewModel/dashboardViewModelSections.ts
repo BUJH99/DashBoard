@@ -8,7 +8,6 @@ import {
 import {
   companyDetails,
 } from "../../domain/seeds/companySeed";
-import { industryNews } from "../../domain/seeds/industrySeed";
 import {
   essayQuestions,
   experienceLibrary,
@@ -70,12 +69,41 @@ export function buildIndustryViewModel({
   filteredIndustryNews,
   dashboardState,
   setUiState,
+  industryKeywords,
+  industryPeriodDays,
+  industryLastCrawledAt,
+  industryIsCrawling,
+  industryCrawlMessage,
+  industryWarnings,
+  industryIsKeywordEditorOpen,
+  toggleIndustryKeywordEditor,
+  addIndustryKeyword,
+  updateIndustryKeyword,
+  removeIndustryKeyword,
+  updateIndustryPeriodDays,
+  crawlIndustryNews,
+  openIndustryArticle,
 }: BuildDashboardViewModelOptions) {
   return {
     news: filteredIndustryNews,
-    tags: buildIndustryTags(industryNews),
+    tags: buildIndustryTags(dashboardState.industry.articles, industryKeywords),
     selectedTag: dashboardState.ui.industryFilter,
     setTag: (tag: string) => setUiState("industryFilter", tag),
+    keywords: industryKeywords,
+    periodDays: industryPeriodDays,
+    lastCrawledAt: industryLastCrawledAt,
+    isCrawling: industryIsCrawling,
+    crawlMessage: industryCrawlMessage,
+    warnings: industryWarnings,
+    isKeywordEditorOpen: industryIsKeywordEditorOpen,
+    toggleKeywordEditor: toggleIndustryKeywordEditor,
+    addKeyword: addIndustryKeyword,
+    updateKeyword: updateIndustryKeyword,
+    removeKeyword: removeIndustryKeyword,
+    updatePeriodDays: updateIndustryPeriodDays,
+    crawl: crawlIndustryNews,
+    openArticle: openIndustryArticle,
+    canCrawl: industryKeywords.some((keyword) => keyword.trim().length > 0),
   };
 }
 

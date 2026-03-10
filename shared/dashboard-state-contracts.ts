@@ -14,12 +14,13 @@ export type DashboardTab =
   | "offer"
   | "location"
   | "portfolio"
+  | "resume"
   | "checklist"
   | "interview"
   | "calendar"
   | "coverletters";
 
-export type PortfolioSubTab = "showcase" | "academics" | "study";
+export type PortfolioSubTab = "experience" | "showcase" | "academics" | "study";
 
 export type ApplicationChecklistItem = {
   id: string;
@@ -54,6 +55,80 @@ export type CompanyAnalysisEntry = {
   techStack: string[];
   news: string[];
   comparison: CompanyAnalysisComparisonProfile;
+};
+
+export type DashboardIndustryArticle = {
+  id: string;
+  title: string;
+  source: string;
+  date: string;
+  publishedAt: string;
+  tag: string;
+  matchedKeywords: string[];
+  summary: string;
+  url: string;
+};
+
+export type DashboardResumeEducationItem = {
+  school: string;
+  degree: string;
+  major: string;
+  gpa: string;
+  period: string;
+  statusLabel: string;
+};
+
+export type DashboardResumeCertificateItem = {
+  name: string;
+  issuer: string;
+  date: string;
+};
+
+export type DashboardResumeLanguageItem = {
+  name: string;
+  detail: string;
+  levelLabel: string;
+};
+
+export type DashboardResumeSkillSpecItem = {
+  name: string;
+  track: string;
+  levelLabel: "상" | "중" | "하";
+};
+
+export type DashboardResumeAwardItem = {
+  title: string;
+  issuer: string;
+};
+
+export type DashboardResumePaperItem = {
+  title: string;
+};
+
+export type DashboardResumeExperienceCategory =
+  | "project"
+  | "internship"
+  | "activity"
+  | "contest"
+  | "research";
+
+export type DashboardResumeExperienceItem = {
+  id: number;
+  title: string;
+  category: DashboardResumeExperienceCategory;
+  organization: string;
+  period: string;
+  role: string;
+  teamLabel: string;
+  featured: boolean;
+  tags: string[];
+  overview: string;
+  outcome: string;
+  learning: string;
+  rawBullet: string;
+  improvedBullet: string;
+  bulletReason: string;
+  keywords: string[];
 };
 
 export type DashboardLocalState = {
@@ -99,6 +174,28 @@ export type DashboardLocalState = {
     query: string;
     companyFilter: string;
     taskChecked: Record<number, boolean>;
+  };
+  industry: {
+    keywords: string[];
+    articles: DashboardIndustryArticle[];
+    lastCrawledAt: string | null;
+    periodDays: number;
+  };
+  resume: {
+    version: number;
+    title: string;
+    targetRole: string;
+    summary: string;
+    userName: string;
+    email: string;
+    selectedExperienceIds: number[];
+    education: DashboardResumeEducationItem[];
+    certificates: DashboardResumeCertificateItem[];
+    languages: DashboardResumeLanguageItem[];
+    skillSpecs: DashboardResumeSkillSpecItem[];
+    awards: DashboardResumeAwardItem[];
+    papers: DashboardResumePaperItem[];
+    experiences: DashboardResumeExperienceItem[];
   };
   companyAnalysis: {
     compareCompanyId: number;
