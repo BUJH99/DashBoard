@@ -72,9 +72,16 @@ function buildSpellcheckIssueSummary(issue: CoverLetterSpellcheckIssue) {
       : "표준어 후보를 찾지 못했습니다.";
   }
 
+  if (
+    issue.suggestions.length === 0 &&
+    issue.explanation?.includes("영문이 섞인 비정상 단어가 의심됩니다.")
+  ) {
+    return "영문 혼입이 의심되는 표현입니다.";
+  }
+
   return issue.suggestions.length > 0
     ? `추천: ${issue.suggestions.join(", ")}`
-    : "추천 후보를 찾지 못했습니다.";
+    : "추천 없이 확인이 필요한 표현입니다.";
 }
 
 function replaceAllOccurrences(source: string, target: string, replacement: string) {

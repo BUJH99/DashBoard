@@ -29,6 +29,58 @@ type KoreanHeadwordsModule = {
   KOREAN_HEADWORDS: string[];
 };
 
+type TextToken = {
+  token: string;
+  start: number;
+  end: number;
+};
+
+type TextChunk = {
+  text: string;
+  start: number;
+  end: number;
+};
+
+type DetectedIssueSource =
+  | "hanfix"
+  | "mixed-script"
+  | "particle-spacing"
+  | "bound-noun-spacing"
+  | "token-probe"
+  | "standard";
+
+type DetectedIssueConfidence = "high" | "medium" | "low";
+
+type DetectedIssueSpan = {
+  category: CoverLetterSpellcheckIssueCategory;
+  token: string;
+  start: number;
+  end: number;
+  suggestions: string[];
+  explanation: string | null;
+  examples: string[];
+  source: DetectedIssueSource;
+  confidence: DetectedIssueConfidence;
+};
+
+type ProbeIssueTemplate = {
+  suggestions: string[];
+  explanation: string | null;
+  examples: string[];
+  confidence: DetectedIssueConfidence;
+};
+
+type HanfixProbeCacheEntry = {
+  attempts: number;
+  issues: HanfixIssue[];
+};
+
+type ProbeContext = {
+  hanfixProbeCache: Map<string, HanfixProbeCacheEntry>;
+  tokenProbeCache: Map<string, ProbeIssueTemplate | null>;
+  mixedScriptProbeCache: Map<string, ProbeIssueTemplate>;
+};
+
 const BASE_IGNORE_TERMS = [
   "HBM",
   "HBM3",
@@ -79,9 +131,27 @@ const BASE_IGNORE_TERMS = [
   "파운드리",
 ];
 const HANFIX_MAX_TEXT_LENGTH = 1000;
+const HANFIX_PROBE_RETRY_DELAYS = [120, 320];
 const STANDARD_WORD_TOKEN_PATTERN = /[A-Za-z0-9가-힣^+-]{2,}/g;
 const HANGUL_TOKEN_PATTERN = /^[가-힣]+$/;
-const STANDARD_WORD_PARTICLE_SUFFIXES = ["으로", "에서", "에게", "은", "는", "이", "가", "을", "를", "도", "만", "와", "과", "로"];
+const LATIN_PATTERN = /[A-Za-z]/;
+const MIXED_SCRIPT_SUSPICIOUS_PATTERN = /[가-힣][A-Za-z]+(?:[가-힣]|$)/;
+const STANDARD_WORD_PARTICLE_SUFFIXES = [
+  "으로",
+  "에서",
+  "에게",
+  "은",
+  "는",
+  "이",
+  "가",
+  "을",
+  "를",
+  "도",
+  "만",
+  "와",
+  "과",
+  "로",
+];
 const ATTACHED_PARTICLE_RULES = new Map([
   ["은", "조사는 앞말에 붙여 씁니다."],
   ["는", "조사는 앞말에 붙여 씁니다."],
@@ -105,64 +175,60 @@ const ATTACHED_PARTICLE_RULES = new Map([
   ["처럼", "조사는 앞말에 붙여 씁니다."],
 ]);
 const ATTACHED_PARTICLE_TOKENS = new Set(ATTACHED_PARTICLE_RULES.keys());
-const SPLIT_CANDIDATE_SEGMENT_LIMIT = 4;
-const SPLIT_CANDIDATE_EXTRA_SEGMENTS = new Set([
-  "불구하고",
-  "때문에",
-  "만큼",
-  "대로",
-  "처럼",
-  "뿐만",
-  "입니다",
-  "인데도",
-  "이라도",
-  "이라고",
-  "이며",
-  "였다",
-  "이었다",
-]);
-const SPLIT_CANDIDATE_ATTACHED_SEGMENTS = new Set([
-  "입니다",
-  "인데도",
-  "이라도",
-  "이라고",
-  "이며",
-  "였다",
-  "이었다",
-]);
-const SPLIT_CANDIDATE_ALLOWED_SINGLE_SYLLABLE_SEGMENTS = new Set([
-  "이",
-  "그",
-  "저",
+const COUNTER_PREFIXES = new Set([
+  "몇",
+  "여러",
   "한",
   "두",
   "세",
   "네",
-  "몇",
-  "개",
-  "번",
-  "명",
-  "채",
-  "칸",
-  "줄",
-  "수",
-  "것",
-  "쪽",
-  "집",
-  "말",
-  "글",
-  "끝",
-  "첫",
+  "다섯",
+  "여섯",
+  "일곱",
+  "여덟",
+  "아홉",
+  "열",
+]);
+const COUNTER_SUFFIX_EXPLANATIONS = new Map([
+  ["개", "수량을 나타내는 단위 명사는 앞말과 띄어 씁니다."],
+  ["명", "인원을 나타내는 단위 명사는 앞말과 띄어 씁니다."],
+  ["번", "횟수를 나타내는 단위 명사는 앞말과 띄어 씁니다."],
+  ["가지", "의존 명사는 앞말과 띄어 씁니다."],
+]);
+const COUNTER_SPACING_EXCLUSIONS = new Set(["한번"]);
+const CONSERVATIVE_SAFE_SPELLING_TOKENS = new Set([
+  "기여하고",
+  "저전력",
+  "고성능",
+  "검사기",
+  "검사기가",
+  "테스트중이다",
 ]);
 const TOKEN_PROBE_LIMIT = 10;
 const TOKEN_PROBE_TEMPLATE_PREFIX = "이 단어는 ";
 const TOKEN_PROBE_TEMPLATE_SUFFIX = "입니다.";
+const MIXED_SCRIPT_WARNING_MESSAGE =
+  "영문이 섞인 비정상 단어가 의심됩니다. 입력 전환 상태를 확인해 주세요.";
+
+const SOURCE_PRIORITY: Record<DetectedIssueSource, number> = {
+  hanfix: 5,
+  "mixed-script": 4,
+  "particle-spacing": 3,
+  "bound-noun-spacing": 2,
+  "token-probe": 2,
+  standard: 1,
+};
+
+const CONFIDENCE_PRIORITY: Record<DetectedIssueConfidence, number> = {
+  high: 3,
+  medium: 2,
+  low: 1,
+};
 
 let hanfixModulePromise: Promise<HanfixModule> | null = null;
 let standardWordDictionaryPromise: Promise<Record<string, StandardWordDictionaryEntry>> | null =
   null;
 let koreanHeadwordSetPromise: Promise<Set<string>> | null = null;
-const tokenProbeCache = new Map<string, CoverLetterSpellcheckIssue | null>();
 
 function normalizeBaseToken(token: string) {
   return token.replace(/^[^\p{Letter}\p{Number}가-힣]+|[^\p{Letter}\p{Number}가-힣]+$/gu, "").trim();
@@ -178,6 +244,10 @@ function normalizeStandardWordToken(token: string) {
 
 function normalizeIssueToken(token: string) {
   return normalizeBaseToken(token);
+}
+
+function normalizeSuggestionText(value: string) {
+  return value.replace(/\s+/g, " ").trim();
 }
 
 function buildIssueKey(category: CoverLetterSpellcheckIssueCategory, token: string) {
@@ -258,58 +328,42 @@ function buildStandardWordLookupCandidates(token: string) {
   return [...new Set(candidates)];
 }
 
-function isHangulToken(token: string) {
-  return HANGUL_TOKEN_PATTERN.test(token);
-}
-
-function tokenizeByWhitespace(text: string) {
-  return text
-    .replace(/\r\n/g, "\n")
-    .split(/\s+/)
-    .map((token) => normalizeBaseToken(token))
-    .filter((token) => token.length > 0);
-}
-
-function buildTokenFrequencyMap(tokens: string[]) {
-  const frequencyMap = new Map<string, number>();
-
-  for (const token of tokens) {
-    frequencyMap.set(token, (frequencyMap.get(token) ?? 0) + 1);
-  }
-
-  return frequencyMap;
-}
-
 function buildSpellingTokenCandidates(token: string) {
   return buildStandardWordLookupCandidates(token);
 }
 
-function hasSimilarSpellingIssue(issueMap: Map<string, CoverLetterSpellcheckIssue>, token: string) {
-  const candidates = new Set(buildSpellingTokenCandidates(token));
-
-  return [...issueMap.values()].some((issue) => {
-    if (issue.category !== "spelling") {
-      return false;
-    }
-
-    return buildSpellingTokenCandidates(issue.token).some((candidate) => candidates.has(candidate));
-  });
+function isHangulToken(token: string) {
+  return HANGUL_TOKEN_PATTERN.test(token);
 }
 
-function hasStandaloneSpellingIssue(issueMap: Map<string, CoverLetterSpellcheckIssue>, token: string) {
-  const candidates = new Set(buildSpellingTokenCandidates(token));
-
-  return [...issueMap.values()].some((issue) => {
-    if (issue.category !== "spelling" || issue.token.includes(" ")) {
-      return false;
-    }
-
-    return buildSpellingTokenCandidates(issue.token).some((candidate) => candidates.has(candidate));
-  });
+function containsLatin(value: string) {
+  return LATIN_PATTERN.test(value);
 }
 
-function isSplitSegmentCandidate(token: string, headwordSet: Set<string>) {
-  return headwordSet.has(token) || SPLIT_CANDIDATE_EXTRA_SEGMENTS.has(token);
+function isSuspiciousMixedScriptToken(token: string) {
+  return MIXED_SCRIPT_SUSPICIOUS_PATTERN.test(token);
+}
+
+function shouldSuppressConservativeSpellingToken(token: string) {
+  return CONSERVATIVE_SAFE_SPELLING_TOKENS.has(normalizeStandardWordToken(token));
+}
+
+function isMeaningfulSuggestion(original: string, suggestion: string) {
+  return normalizeSuggestionText(suggestion) !== normalizeSuggestionText(original);
+}
+
+function sanitizeSuggestions(original: string, suggestions: string[]) {
+  return [
+    ...new Set(
+      suggestions
+        .map(normalizeSuggestionText)
+        .filter((suggestion) => suggestion.length > 0 && isMeaningfulSuggestion(original, suggestion)),
+    ),
+  ].slice(0, 5);
+}
+
+function sanitizeMixedScriptSuggestions(original: string, suggestions: string[]) {
+  return sanitizeSuggestions(original, suggestions).filter((suggestion) => !containsLatin(suggestion));
 }
 
 function hasValidAttachedParticleForm(token: string, headwordSet: Set<string>) {
@@ -332,137 +386,83 @@ function hasValidAttachedParticleForm(token: string, headwordSet: Set<string>) {
   return false;
 }
 
-function isAllowedSingleSyllableSegment(token: string) {
-  return token.length > 1 || SPLIT_CANDIDATE_ALLOWED_SINGLE_SYLLABLE_SEGMENTS.has(token);
-}
+function getTrimBounds(rawToken: string) {
+  let start = 0;
+  let end = rawToken.length;
 
-function scoreSplitParts(parts: string[]) {
-  return parts.reduce((score, part, index) => {
-    let nextScore = score + Math.min(part.length, 4) * 5;
-
-    if (index === 0 && part.length === 1 && !SPLIT_CANDIDATE_ALLOWED_SINGLE_SYLLABLE_SEGMENTS.has(part)) {
-      nextScore -= 12;
-    }
-
-    if (part.length === 1 && !SPLIT_CANDIDATE_ALLOWED_SINGLE_SYLLABLE_SEGMENTS.has(part)) {
-      nextScore -= 8;
-    }
-
-    return nextScore;
-  }, parts.length === 2 ? 100 : 100 - parts.length * 8);
-}
-
-function formatSplitParts(parts: string[]) {
-  if (parts.length === 0) {
-    return "";
+  while (start < end && !/[\p{Letter}\p{Number}가-힣]/u.test(rawToken[start] ?? "")) {
+    start += 1;
   }
 
-  let result = parts[0];
+  while (end > start && !/[\p{Letter}\p{Number}가-힣]/u.test(rawToken[end - 1] ?? "")) {
+    end -= 1;
+  }
 
-  for (const part of parts.slice(1)) {
-    if (SPLIT_CANDIDATE_ATTACHED_SEGMENTS.has(part)) {
-      result += part;
+  return { start, end };
+}
+
+function tokenizeByWhitespaceWithOffsets(text: string) {
+  const regex = /\S+/g;
+  const tokens: TextToken[] = [];
+
+  for (const match of text.matchAll(regex)) {
+    const rawToken = match[0];
+    const index = match.index ?? 0;
+    const bounds = getTrimBounds(rawToken);
+    const token = normalizeBaseToken(rawToken);
+
+    if (!token) {
       continue;
     }
 
-    result += ` ${part}`;
+    tokens.push({
+      token,
+      start: index + bounds.start,
+      end: index + bounds.end,
+    });
   }
 
-  return result;
+  return tokens;
 }
 
-function findBestCompoundSplit(token: string, headwordSet: Set<string>) {
-  if (
-    !isHangulToken(token) ||
-    token.length < 3 ||
-    token.length > 12 ||
-    headwordSet.has(token) ||
-    hasValidAttachedParticleForm(token, headwordSet)
-  ) {
-    return null;
-  }
+function extractLookupTokens(text: string) {
+  const regex = new RegExp(STANDARD_WORD_TOKEN_PATTERN.source, STANDARD_WORD_TOKEN_PATTERN.flags);
+  const tokens: TextToken[] = [];
 
-  const candidates: string[][] = [];
+  for (const match of text.matchAll(regex)) {
+    const token = normalizeBaseToken(match[0]);
 
-  function walk(startIndex: number, parts: string[]) {
-    if (parts.length > SPLIT_CANDIDATE_SEGMENT_LIMIT) {
-      return;
+    if (!token) {
+      continue;
     }
 
-    if (startIndex === token.length) {
-      if (parts.length >= 2 && parts.every(isAllowedSingleSyllableSegment)) {
-        candidates.push([...parts]);
-      }
+    const start = match.index ?? 0;
 
-      return;
+    tokens.push({
+      token,
+      start,
+      end: start + match[0].length,
+    });
+  }
+
+  return tokens;
+}
+
+function buildTokenOccurrenceMap(tokens: TextToken[]) {
+  const tokenMap = new Map<string, TextToken[]>();
+
+  for (const token of tokens) {
+    const current = tokenMap.get(token.token);
+
+    if (current) {
+      current.push(token);
+      continue;
     }
 
-    for (let nextIndex = startIndex + 1; nextIndex <= token.length; nextIndex += 1) {
-      const part = token.slice(startIndex, nextIndex);
-
-      if (!isSplitSegmentCandidate(part, headwordSet)) {
-        continue;
-      }
-
-      if (parts.length > 0 && ATTACHED_PARTICLE_TOKENS.has(part)) {
-        continue;
-      }
-
-      parts.push(part);
-      walk(nextIndex, parts);
-      parts.pop();
-    }
+    tokenMap.set(token.token, [token]);
   }
 
-  walk(0, []);
-
-  if (candidates.length === 0) {
-    return null;
-  }
-
-  return candidates.sort((left, right) => scoreSplitParts(right) - scoreSplitParts(left))[0] ?? null;
-}
-
-function buildSpacingIssue(
-  token: string,
-  suggestion: string,
-  explanation: string,
-  count = 1,
-): CoverLetterSpellcheckIssue {
-  return {
-    category: "spelling",
-    token,
-    count,
-    suggestions: [suggestion],
-    explanation,
-    examples: [],
-  };
-}
-
-function stripParticleSuffix(token: string, root: string) {
-  if (!token.startsWith(root)) {
-    return null;
-  }
-
-  return token.slice(root.length);
-}
-
-function rebuildSuggestionWithSuffix(suggestion: string, suffix: string | null) {
-  if (!suffix) {
-    return suggestion;
-  }
-
-  const trimmedSuggestion = suggestion.trimEnd();
-
-  if (!trimmedSuggestion) {
-    return suffix;
-  }
-
-  if (trimmedSuggestion.includes(" ")) {
-    return `${trimmedSuggestion}${suffix}`;
-  }
-
-  return `${trimmedSuggestion}${suffix}`;
+  return tokenMap;
 }
 
 function splitLongTextByWords(text: string, maxLength: number) {
@@ -549,6 +549,187 @@ function splitTextIntoChunks(text: string, maxLength = HANFIX_MAX_TEXT_LENGTH) {
   return chunks.length > 0 ? chunks : splitLongTextByWords(normalized, maxLength);
 }
 
+function splitTextIntoChunksWithOffsets(text: string, maxLength = HANFIX_MAX_TEXT_LENGTH) {
+  const chunkTexts = splitTextIntoChunks(text, maxLength);
+  const chunks: TextChunk[] = [];
+  let cursor = 0;
+
+  for (const chunkText of chunkTexts) {
+    const start = text.indexOf(chunkText, cursor);
+    const resolvedStart = start >= 0 ? start : text.indexOf(chunkText);
+    const safeStart = resolvedStart >= 0 ? resolvedStart : cursor;
+    const end = safeStart + chunkText.length;
+
+    chunks.push({
+      text: chunkText,
+      start: safeStart,
+      end,
+    });
+
+    cursor = end;
+  }
+
+  return chunks;
+}
+
+function createDetectedSpan(
+  token: string,
+  start: number,
+  end: number,
+  category: CoverLetterSpellcheckIssueCategory,
+  source: DetectedIssueSource,
+  confidence: DetectedIssueConfidence,
+  suggestions: string[],
+  explanation: string | null,
+  examples: string[] = [],
+): DetectedIssueSpan {
+  return {
+    category,
+    token,
+    start,
+    end,
+    suggestions,
+    explanation,
+    examples,
+    source,
+    confidence,
+  };
+}
+
+function mergeSpanExamples(currentExamples: string[], nextExamples: string[]) {
+  return [...new Set([...currentExamples, ...nextExamples])].filter(Boolean).slice(0, 5);
+}
+
+function compareSpanPriority(left: DetectedIssueSpan, right: DetectedIssueSpan) {
+  const sourceDiff = SOURCE_PRIORITY[right.source] - SOURCE_PRIORITY[left.source];
+
+  if (sourceDiff !== 0) {
+    return sourceDiff;
+  }
+
+  const confidenceDiff = CONFIDENCE_PRIORITY[right.confidence] - CONFIDENCE_PRIORITY[left.confidence];
+
+  if (confidenceDiff !== 0) {
+    return confidenceDiff;
+  }
+
+  const rangeDiff = (left.end - left.start) - (right.end - right.start);
+
+  if (rangeDiff !== 0) {
+    return rangeDiff;
+  }
+
+  return left.start - right.start;
+}
+
+function findExactSpan(spans: DetectedIssueSpan[], candidate: DetectedIssueSpan) {
+  return spans.find(
+    (span) =>
+      span.category === candidate.category &&
+      span.token === candidate.token &&
+      span.start === candidate.start &&
+      span.end === candidate.end,
+  );
+}
+
+function hasOverlappingSpellingSpan(
+  spans: DetectedIssueSpan[],
+  candidate: DetectedIssueSpan,
+  options: { requireExact?: boolean } = {},
+) {
+  return spans.some((span) => {
+    if (span.category !== "spelling") {
+      return false;
+    }
+
+    if (options.requireExact) {
+      return span.start === candidate.start && span.end === candidate.end;
+    }
+
+    return span.start < candidate.end && candidate.start < span.end;
+  });
+}
+
+function mergeDetectedSpans(spans: DetectedIssueSpan[]) {
+  const kept: DetectedIssueSpan[] = [];
+
+  for (const candidate of spans.sort(compareSpanPriority)) {
+    const exact = findExactSpan(kept, candidate);
+
+    if (exact) {
+      exact.suggestions = [...new Set([...exact.suggestions, ...candidate.suggestions])].slice(0, 5);
+
+      if (!exact.explanation && candidate.explanation) {
+        exact.explanation = candidate.explanation;
+      }
+
+      exact.examples = mergeSpanExamples(exact.examples, candidate.examples);
+      continue;
+    }
+
+    if (
+      candidate.category === "standard" &&
+      hasOverlappingSpellingSpan(kept, candidate)
+    ) {
+      continue;
+    }
+
+    if (
+      candidate.category === "spelling" &&
+      candidate.suggestions.length === 0 &&
+      hasOverlappingSpellingSpan(kept, candidate, { requireExact: true })
+    ) {
+      continue;
+    }
+
+    kept.push(candidate);
+  }
+
+  return kept.sort((left, right) => {
+    if (left.start !== right.start) {
+      return left.start - right.start;
+    }
+
+    return compareSpanPriority(left, right);
+  });
+}
+
+function aggregateDetectedSpans(spans: DetectedIssueSpan[]) {
+  const issueMap = new Map<string, CoverLetterSpellcheckIssue>();
+
+  for (const span of spans) {
+    const issueKey = buildIssueKey(span.category, span.token);
+    const currentIssue = issueMap.get(issueKey);
+
+    if (currentIssue) {
+      currentIssue.count += 1;
+      currentIssue.suggestions = [...new Set([...currentIssue.suggestions, ...span.suggestions])].slice(0, 5);
+
+      if (!currentIssue.explanation && span.explanation) {
+        currentIssue.explanation = span.explanation;
+      }
+
+      currentIssue.examples = mergeSpanExamples(currentIssue.examples, span.examples);
+      continue;
+    }
+
+    issueMap.set(issueKey, {
+      category: span.category,
+      token: span.token,
+      count: 1,
+      suggestions: [...span.suggestions],
+      explanation: span.explanation,
+      examples: [...span.examples],
+    });
+  }
+
+  return [...issueMap.values()].sort(sortIssues);
+}
+
+async function sleep(delay: number) {
+  await new Promise((resolve) => setTimeout(resolve, delay));
+}
+
 async function getHanfixModule() {
   if (!hanfixModulePromise) {
     hanfixModulePromise = import("hanfix/src/hanfix.js")
@@ -596,26 +777,79 @@ async function checkChunk(text: string) {
   return hanfixModule.check(text);
 }
 
+async function runHanfixProbe(
+  text: string,
+  context: ProbeContext,
+  attempts = 1,
+): Promise<HanfixIssue[]> {
+  const cached = context.hanfixProbeCache.get(text);
+
+  if (cached && (cached.issues.length > 0 || cached.attempts >= attempts)) {
+    return cached.issues;
+  }
+
+  let lastIssues = cached?.issues ?? [];
+  const startAttempt = cached?.attempts ?? 0;
+
+  for (let attempt = startAttempt; attempt < attempts; attempt += 1) {
+    try {
+      const issues = await checkChunk(text);
+      lastIssues = issues;
+
+      if (issues.length > 0) {
+        context.hanfixProbeCache.set(text, {
+          attempts: attempt + 1,
+          issues,
+        });
+
+        return issues;
+      }
+    } catch (error) {
+      if (attempt === attempts - 1) {
+        throw error;
+      }
+    }
+
+    if (attempt < attempts - 1) {
+      await sleep(HANFIX_PROBE_RETRY_DELAYS[Math.min(attempt, HANFIX_PROBE_RETRY_DELAYS.length - 1)] ?? 0);
+    }
+  }
+
+  context.hanfixProbeCache.set(text, {
+    attempts,
+    issues: lastIssues,
+  });
+
+  return lastIssues;
+}
+
 function buildIssueFromDirectProbe(
   token: string,
   issue: HanfixIssue,
   suffix: string | null,
-): CoverLetterSpellcheckIssue | null {
+): ProbeIssueTemplate | null {
   if (normalizeStandardWordToken(issue.original) !== normalizeStandardWordToken(token)) {
     return null;
   }
 
-  return {
-    category: "spelling",
+  const suggestions = sanitizeSuggestions(
     token,
-    count: 1,
-    suggestions: [...new Set(issue.suggestions.map((suggestion) => rebuildSuggestionWithSuffix(suggestion, suffix)))],
+    issue.suggestions.map((suggestion) => rebuildSuggestionWithSuffix(suggestion, suffix)),
+  );
+
+  if (suggestions.length === 0) {
+    return null;
+  }
+
+  return {
+    suggestions,
     explanation: issue.explanation ?? null,
     examples: issue.examples?.filter((example): example is string => Boolean(example)) ?? [],
+    confidence: "medium",
   };
 }
 
-function buildIssueFromTemplateProbe(token: string, issue: HanfixIssue): CoverLetterSpellcheckIssue | null {
+function buildIssueFromTemplateProbe(token: string, issue: HanfixIssue): ProbeIssueTemplate | null {
   const originalWithSuffix = `${token}${TOKEN_PROBE_TEMPLATE_SUFFIX}`;
   const normalizedOriginal = normalizeBaseToken(issue.original);
 
@@ -623,32 +857,55 @@ function buildIssueFromTemplateProbe(token: string, issue: HanfixIssue): CoverLe
     return null;
   }
 
-  const suggestions = issue.suggestions
-    .map((suggestion) => {
-      if (!suggestion.endsWith(TOKEN_PROBE_TEMPLATE_SUFFIX)) {
-        return null;
-      }
+  const suggestions = sanitizeSuggestions(
+    token,
+    issue.suggestions
+      .map((suggestion) => {
+        if (!suggestion.endsWith(TOKEN_PROBE_TEMPLATE_SUFFIX)) {
+          return null;
+        }
 
-      return suggestion.slice(0, -TOKEN_PROBE_TEMPLATE_SUFFIX.length);
-    })
-    .filter((suggestion): suggestion is string => Boolean(suggestion));
+        return suggestion.slice(0, -TOKEN_PROBE_TEMPLATE_SUFFIX.length);
+      })
+      .filter((suggestion): suggestion is string => Boolean(suggestion)),
+  );
 
   if (suggestions.length === 0) {
     return null;
   }
 
   return {
-    category: "spelling",
-    token,
-    count: 1,
-    suggestions: [...new Set(suggestions)],
+    suggestions,
     explanation: issue.explanation ?? null,
     examples: issue.examples?.filter((example): example is string => Boolean(example)) ?? [],
+    confidence: "medium",
   };
 }
 
-async function probeSingleToken(token: string) {
-  const cached = tokenProbeCache.get(token);
+function stripParticleSuffix(token: string, root: string) {
+  if (!token.startsWith(root)) {
+    return null;
+  }
+
+  return token.slice(root.length);
+}
+
+function rebuildSuggestionWithSuffix(suggestion: string, suffix: string | null) {
+  if (!suffix) {
+    return suggestion;
+  }
+
+  const trimmedSuggestion = suggestion.trimEnd();
+
+  if (!trimmedSuggestion) {
+    return suffix;
+  }
+
+  return `${trimmedSuggestion}${suffix}`;
+}
+
+async function probeSingleToken(token: string, context: ProbeContext) {
+  const cached = context.tokenProbeCache.get(token);
 
   if (cached !== undefined) {
     return cached;
@@ -658,51 +915,407 @@ async function probeSingleToken(token: string) {
 
   for (const candidate of candidates) {
     const suffix = stripParticleSuffix(token, candidate);
+    const directIssues = await runHanfixProbe(candidate, context, 2);
+    const directIssue = directIssues
+      .map((issue) => buildIssueFromDirectProbe(token, issue, suffix))
+      .find((issue): issue is ProbeIssueTemplate => Boolean(issue));
 
+    if (directIssue) {
+      context.tokenProbeCache.set(token, directIssue);
+      return directIssue;
+    }
+
+    if (suffix) {
+      continue;
+    }
+
+    const templateIssues = await runHanfixProbe(
+      `${TOKEN_PROBE_TEMPLATE_PREFIX}${candidate}${TOKEN_PROBE_TEMPLATE_SUFFIX}`,
+      context,
+      2,
+    );
+    const templateIssue = templateIssues
+      .map((issue) => buildIssueFromTemplateProbe(token, issue))
+      .find((issue): issue is ProbeIssueTemplate => Boolean(issue));
+
+    if (templateIssue) {
+      context.tokenProbeCache.set(token, templateIssue);
+      return templateIssue;
+    }
+  }
+
+  context.tokenProbeCache.set(token, null);
+  return null;
+}
+
+function buildMixedScriptCandidates(token: string) {
+  const candidates = [token];
+  const segmentPattern = /[A-Za-z]+/g;
+
+  for (const match of token.matchAll(segmentPattern)) {
+    const start = match.index ?? 0;
+    const end = start + match[0].length;
+    const left = token.slice(0, start);
+    const right = token.slice(end);
+    const spaced = [left, match[0], right].filter(Boolean).join(" ");
+
+    if (spaced && spaced !== token) {
+      candidates.push(spaced);
+    }
+  }
+
+  return [...new Set(candidates)];
+}
+
+async function probeMixedScriptToken(token: string, context: ProbeContext) {
+  const cached = context.mixedScriptProbeCache.get(token);
+
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  for (const [index, candidate] of buildMixedScriptCandidates(token).entries()) {
+    const issues = await runHanfixProbe(candidate, context, index === 0 ? 3 : 2);
+    const matchedIssue = issues.find((issue) => {
+      const normalizedOriginal = normalizeStandardWordToken(issue.original);
+
+      return (
+        normalizedOriginal === normalizeStandardWordToken(token) ||
+        normalizedOriginal === normalizeStandardWordToken(candidate)
+      );
+    });
+
+    if (!matchedIssue) {
+      continue;
+    }
+
+    const suggestions = sanitizeMixedScriptSuggestions(token, matchedIssue.suggestions);
+
+    if (suggestions.length > 0) {
+      const result = {
+        suggestions,
+        explanation: matchedIssue.explanation ?? MIXED_SCRIPT_WARNING_MESSAGE,
+        examples: matchedIssue.examples?.filter((example): example is string => Boolean(example)) ?? [],
+        confidence: "medium" as const,
+      };
+
+      context.mixedScriptProbeCache.set(token, result);
+      return result;
+    }
+  }
+
+  const warningIssue = {
+    suggestions: [],
+    explanation: MIXED_SCRIPT_WARNING_MESSAGE,
+    examples: [],
+    confidence: "low" as const,
+  };
+
+  context.mixedScriptProbeCache.set(token, warningIssue);
+  return warningIssue;
+}
+
+function findSequentialOccurrence(text: string, needle: string, startAt: number) {
+  if (!needle) {
+    return -1;
+  }
+
+  const exactIndex = text.indexOf(needle, startAt);
+
+  if (exactIndex >= 0) {
+    return exactIndex;
+  }
+
+  if (startAt > 0) {
+    return text.indexOf(needle);
+  }
+
+  return -1;
+}
+
+function locateHanfixSpansInChunk(
+  chunk: TextChunk,
+  issues: HanfixIssue[],
+  ignoreTerms: Set<string>,
+) {
+  const spans: DetectedIssueSpan[] = [];
+  const occurrenceCursor = new Map<string, number>();
+
+  for (const issue of issues) {
+    const token = normalizeBaseToken(issue.original);
+
+    if (
+      !token ||
+      shouldIgnoreIssue(token, ignoreTerms) ||
+      shouldSuppressConservativeSpellingToken(token)
+    ) {
+      continue;
+    }
+
+    const localSearchStart = occurrenceCursor.get(issue.original) ?? 0;
+    const localStart =
+      findSequentialOccurrence(chunk.text, issue.original, localSearchStart) >= 0
+        ? findSequentialOccurrence(chunk.text, issue.original, localSearchStart)
+        : findSequentialOccurrence(chunk.text, token, localSearchStart);
+
+    if (localStart < 0) {
+      continue;
+    }
+
+    occurrenceCursor.set(issue.original, localStart + token.length);
+
+    const suggestions = isSuspiciousMixedScriptToken(token)
+      ? sanitizeMixedScriptSuggestions(token, issue.suggestions)
+      : sanitizeSuggestions(token, issue.suggestions);
+    const explanation =
+      isSuspiciousMixedScriptToken(token) && suggestions.length === 0
+        ? MIXED_SCRIPT_WARNING_MESSAGE
+        : issue.explanation ?? null;
+
+    spans.push(
+      createDetectedSpan(
+        token,
+        chunk.start + localStart,
+        chunk.start + localStart + token.length,
+        "spelling",
+        "hanfix",
+        suggestions.length > 0 ? "high" : "medium",
+        suggestions,
+        explanation,
+        issue.examples?.filter((example): example is string => Boolean(example)) ?? [],
+      ),
+    );
+  }
+
+  return spans;
+}
+
+async function buildHanfixSpans(
+  chunks: TextChunk[],
+  ignoreTerms: Set<string>,
+  warnings: string[],
+) {
+  const spans: DetectedIssueSpan[] = [];
+
+  for (const [index, chunk] of chunks.entries()) {
     try {
-      const directIssues = await checkChunk(candidate);
-      const directIssue = directIssues
-        .map((issue) => buildIssueFromDirectProbe(token, issue, suffix))
-        .find((issue): issue is CoverLetterSpellcheckIssue => Boolean(issue));
+      const issues = await checkChunk(chunk.text);
+      spans.push(...locateHanfixSpansInChunk(chunk, issues, ignoreTerms));
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "맞춤법 검사를 완료하지 못했습니다.";
 
-      if (directIssue) {
-        tokenProbeCache.set(token, directIssue);
-        return directIssue;
-      }
+      warnings.push(`${index + 1}번째 구간 검사에 실패했습니다. (${message})`);
+    }
+  }
 
-      if (suffix) {
+  return spans;
+}
+
+async function buildMixedScriptSpans(
+  text: string,
+  tokens: TextToken[],
+  ignoreTerms: Set<string>,
+  context: ProbeContext,
+  existingSpans: DetectedIssueSpan[],
+) {
+  const spans: DetectedIssueSpan[] = [];
+
+  for (const token of tokens) {
+    if (
+      !isSuspiciousMixedScriptToken(token.token) ||
+      shouldIgnoreIssue(token.token, ignoreTerms, (value) => value) ||
+      shouldSuppressConservativeSpellingToken(token.token)
+    ) {
+      continue;
+    }
+
+    if (hasOverlappingSpellingSpan(existingSpans, createDetectedSpan(token.token, token.start, token.end, "spelling", "mixed-script", "low", [], null), { requireExact: true })) {
+      continue;
+    }
+
+    const issue = await probeMixedScriptToken(token.token, context);
+
+    spans.push(
+      createDetectedSpan(
+        token.token,
+        token.start,
+        token.end,
+        "spelling",
+        "mixed-script",
+        issue.confidence,
+        issue.suggestions,
+        issue.explanation,
+        issue.examples,
+      ),
+    );
+  }
+
+  return spans;
+}
+
+function buildParticleSpacingSpans(text: string, ignoreTerms: Set<string>) {
+  const tokens = tokenizeByWhitespaceWithOffsets(text);
+  const spans: DetectedIssueSpan[] = [];
+  const seenKeys = new Set<string>();
+
+  for (let index = 1; index < tokens.length; index += 1) {
+    const leftToken = tokens[index - 1];
+    const rightToken = tokens[index];
+    const explanation = ATTACHED_PARTICLE_RULES.get(rightToken.token);
+
+    if (!explanation || !isHangulToken(leftToken.token) || !isHangulToken(rightToken.token)) {
+      continue;
+    }
+
+    if (
+      shouldIgnoreIssue(leftToken.token, ignoreTerms, (value) => value) ||
+      shouldIgnoreIssue(rightToken.token, ignoreTerms, (value) => value)
+    ) {
+      continue;
+    }
+
+    const issueToken = `${leftToken.token} ${rightToken.token}`;
+    const issueKey = `${issueToken}:${leftToken.start}:${rightToken.end}`;
+
+    if (seenKeys.has(issueKey)) {
+      continue;
+    }
+
+    seenKeys.add(issueKey);
+
+    spans.push(
+      createDetectedSpan(
+        issueToken,
+        leftToken.start,
+        rightToken.end,
+        "spelling",
+        "particle-spacing",
+        "high",
+        [`${leftToken.token}${rightToken.token}`],
+        explanation,
+      ),
+    );
+  }
+
+  return spans;
+}
+
+function buildBoundNounSpacingSpans(text: string, ignoreTerms: Set<string>) {
+  const tokens = tokenizeByWhitespaceWithOffsets(text);
+  const spans: DetectedIssueSpan[] = [];
+
+  for (const token of tokens) {
+    if (
+      !isHangulToken(token.token) ||
+      shouldIgnoreIssue(token.token, ignoreTerms, (value) => value) ||
+      COUNTER_SPACING_EXCLUSIONS.has(token.token)
+    ) {
+      continue;
+    }
+
+    for (const [suffix, explanation] of COUNTER_SUFFIX_EXPLANATIONS.entries()) {
+      if (!token.token.endsWith(suffix) || token.token.length <= suffix.length) {
         continue;
       }
 
-      const templateIssues = await checkChunk(`${TOKEN_PROBE_TEMPLATE_PREFIX}${candidate}${TOKEN_PROBE_TEMPLATE_SUFFIX}`);
-      const templateIssue = templateIssues
-        .map((issue) => buildIssueFromTemplateProbe(token, issue))
-        .find((issue): issue is CoverLetterSpellcheckIssue => Boolean(issue));
+      const prefix = token.token.slice(0, -suffix.length);
 
-      if (templateIssue) {
-        tokenProbeCache.set(token, templateIssue);
-        return templateIssue;
+      if (!COUNTER_PREFIXES.has(prefix)) {
+        continue;
       }
-    } catch {
+
+      spans.push(
+        createDetectedSpan(
+          token.token,
+          token.start,
+          token.end,
+          "spelling",
+          "bound-noun-spacing",
+          "medium",
+          [`${prefix} ${suffix}`],
+          explanation,
+        ),
+      );
+
       break;
     }
   }
 
-  tokenProbeCache.set(token, null);
-  return null;
+  return spans;
 }
 
-async function checkStandardWords(text: string, ignoreTerms: Set<string>) {
-  const standardWordDictionary = await getStandardWordDictionary();
-  const tokens = text.match(STANDARD_WORD_TOKEN_PATTERN) ?? [];
-  const issues = new Map<string, CoverLetterSpellcheckIssue>();
+async function buildTokenProbeSpans(
+  text: string,
+  ignoreTerms: Set<string>,
+  headwordSet: Set<string>,
+  context: ProbeContext,
+  existingSpans: DetectedIssueSpan[],
+) {
+  const tokens = tokenizeByWhitespaceWithOffsets(text);
+  const tokenOccurrences = buildTokenOccurrenceMap(tokens);
+  const spans: DetectedIssueSpan[] = [];
+  let probeCount = 0;
 
-  for (const token of tokens) {
-    const displayToken = normalizeBaseToken(token);
-    const lookupCandidates = buildStandardWordLookupCandidates(token);
+  for (const [token, occurrences] of tokenOccurrences.entries()) {
+    if (probeCount >= TOKEN_PROBE_LIMIT) {
+      break;
+    }
 
     if (
-      !displayToken ||
+      !isHangulToken(token) ||
+      headwordSet.has(token) ||
+      hasValidAttachedParticleForm(token, headwordSet) ||
+      shouldIgnoreIssue(token, ignoreTerms, (value) => value) ||
+      shouldSuppressConservativeSpellingToken(token)
+    ) {
+      continue;
+    }
+
+    if (
+      existingSpans.some(
+        (span) => span.category === "spelling" && span.token === token && occurrences.some((occurrence) => occurrence.start === span.start && occurrence.end === span.end),
+      )
+    ) {
+      continue;
+    }
+
+    const issue = await probeSingleToken(token, context);
+    probeCount += 1;
+
+    if (!issue) {
+      continue;
+    }
+
+    for (const occurrence of occurrences) {
+      spans.push(
+        createDetectedSpan(
+          token,
+          occurrence.start,
+          occurrence.end,
+          "spelling",
+          "token-probe",
+          issue.confidence,
+          issue.suggestions,
+          issue.explanation,
+          issue.examples,
+        ),
+      );
+    }
+  }
+
+  return spans;
+}
+
+async function buildStandardWordSpans(text: string, ignoreTerms: Set<string>) {
+  const standardWordDictionary = await getStandardWordDictionary();
+  const tokens = extractLookupTokens(text);
+  const spans: DetectedIssueSpan[] = [];
+
+  for (const token of tokens) {
+    const lookupCandidates = buildStandardWordLookupCandidates(token.token);
+
+    if (
       lookupCandidates.length === 0 ||
       lookupCandidates.some((candidate) => shouldIgnoreIssue(candidate, ignoreTerms, (value) => value))
     ) {
@@ -716,157 +1329,22 @@ async function checkStandardWords(text: string, ignoreTerms: Set<string>) {
     }
 
     const entry = standardWordDictionary[matchedCandidate];
-    const currentIssue = issues.get(displayToken);
 
-    if (currentIssue) {
-      currentIssue.count += 1;
-      continue;
-    }
-
-    issues.set(displayToken, {
-      category: "standard",
-      token: displayToken,
-      count: 1,
-      suggestions: [...entry.suggestions],
-      explanation: entry.note || formatStandardWordSuggestions(entry.suggestions),
-      examples: [],
-    });
-  }
-
-  return [...issues.values()].sort(sortIssues);
-}
-
-async function buildParticleSpacingIssues(
-  text: string,
-  ignoreTerms: Set<string>,
-  headwordSet: Set<string>,
-) {
-  const tokens = tokenizeByWhitespace(text);
-  const issues = new Map<string, CoverLetterSpellcheckIssue>();
-
-  for (let index = 1; index < tokens.length; index += 1) {
-    const leftToken = tokens[index - 1];
-    const rightToken = tokens[index];
-    const explanation = ATTACHED_PARTICLE_RULES.get(rightToken);
-
-    if (!explanation || !isHangulToken(leftToken) || !isHangulToken(rightToken)) {
-      continue;
-    }
-
-    if (
-      shouldIgnoreIssue(leftToken, ignoreTerms, (value) => value) ||
-      shouldIgnoreIssue(rightToken, ignoreTerms, (value) => value)
-    ) {
-      continue;
-    }
-
-    const splitParts = findBestCompoundSplit(leftToken, headwordSet);
-    const joinedLeftToken = splitParts ? formatSplitParts(splitParts) : leftToken;
-    const suggestion = `${joinedLeftToken}${rightToken}`;
-    const issueToken = `${leftToken} ${rightToken}`;
-    const currentIssue = issues.get(issueToken);
-
-    if (currentIssue) {
-      currentIssue.count += 1;
-      continue;
-    }
-
-    issues.set(
-      issueToken,
-      buildSpacingIssue(
-        issueToken,
-        suggestion,
-        splitParts
-          ? "띄어쓰기와 조사가 함께 어긋난 표현입니다. 앞부분은 띄어 쓰고 조사는 앞말에 붙여 씁니다."
-          : explanation,
+    spans.push(
+      createDetectedSpan(
+        token.token,
+        token.start,
+        token.end,
+        "standard",
+        "standard",
+        "high",
+        [...entry.suggestions],
+        entry.note || formatStandardWordSuggestions(entry.suggestions),
       ),
     );
   }
 
-  return [...issues.values()].sort(sortIssues);
-}
-
-async function buildCompoundSpacingIssues(
-  text: string,
-  ignoreTerms: Set<string>,
-  headwordSet: Set<string>,
-) {
-  const tokens = tokenizeByWhitespace(text);
-  const frequencyMap = buildTokenFrequencyMap(tokens);
-  const tokensFollowedByParticles = new Set<string>();
-  const issues: CoverLetterSpellcheckIssue[] = [];
-
-  for (let index = 1; index < tokens.length; index += 1) {
-    if (ATTACHED_PARTICLE_TOKENS.has(tokens[index])) {
-      tokensFollowedByParticles.add(tokens[index - 1]);
-    }
-  }
-
-  for (const [token, count] of frequencyMap.entries()) {
-    if (!isHangulToken(token) || shouldIgnoreIssue(token, ignoreTerms, (value) => value)) {
-      continue;
-    }
-
-    if (tokensFollowedByParticles.has(token)) {
-      continue;
-    }
-
-    const splitParts = findBestCompoundSplit(token, headwordSet);
-
-    if (!splitParts) {
-      continue;
-    }
-
-    issues.push(
-      buildSpacingIssue(
-        token,
-        formatSplitParts(splitParts),
-        "사전 기반 띄어쓰기 보정 후보입니다. 단어 경계를 띄어 써서 다시 확인해 보세요.",
-        count,
-      ),
-    );
-  }
-
-  return issues.sort(sortIssues);
-}
-
-async function buildTokenProbeIssues(
-  text: string,
-  ignoreTerms: Set<string>,
-  headwordSet: Set<string>,
-  issueMap: Map<string, CoverLetterSpellcheckIssue>,
-) {
-  const tokens = tokenizeByWhitespace(text);
-  const frequencyMap = buildTokenFrequencyMap(tokens);
-  const issues: CoverLetterSpellcheckIssue[] = [];
-  let probeCount = 0;
-
-  for (const [token, count] of frequencyMap.entries()) {
-    if (probeCount >= TOKEN_PROBE_LIMIT) {
-      break;
-    }
-
-    if (!isHangulToken(token) || headwordSet.has(token) || shouldIgnoreIssue(token, ignoreTerms, (value) => value)) {
-      continue;
-    }
-
-    if (hasStandaloneSpellingIssue(issueMap, token)) {
-      continue;
-    }
-
-    const issue = await probeSingleToken(token);
-
-    probeCount += 1;
-
-    if (!issue || hasStandaloneSpellingIssue(issueMap, issue.token)) {
-      continue;
-    }
-
-    issue.count = count;
-    issues.push(issue);
-  }
-
-  return issues.sort(sortIssues);
+  return spans;
 }
 
 export async function checkCoverLetterSpelling(
@@ -885,108 +1363,47 @@ export async function checkCoverLetterSpelling(
     };
   }
 
-  const chunks = splitTextIntoChunks(normalizedText);
   const warnings: string[] = [];
-  const issueMap = new Map<string, CoverLetterSpellcheckIssue>();
   const ignoreTerms = buildIgnoreTermSet(payload.ignoreTerms);
   const standardWordIgnoreTerms = buildIgnoreTermSet(payload.ignoreTerms, normalizeStandardWordToken);
+  const chunks = splitTextIntoChunksWithOffsets(normalizedText);
+  const probeContext: ProbeContext = {
+    hanfixProbeCache: new Map(),
+    tokenProbeCache: new Map(),
+    mixedScriptProbeCache: new Map(),
+  };
 
   if (chunks.length > 1) {
     warnings.push(`답변이 길어 ${chunks.length}개 구간으로 나누어 검사했습니다.`);
   }
 
-  for (const [index, chunk] of chunks.entries()) {
-    try {
-      const issues = await checkChunk(chunk);
-
-      for (const issue of issues) {
-        if (shouldIgnoreIssue(issue.original, ignoreTerms)) {
-          continue;
-        }
-
-        const issueKey = buildIssueKey("spelling", issue.original);
-        const currentIssue = issueMap.get(issueKey);
-
-        if (currentIssue) {
-          currentIssue.count += 1;
-          currentIssue.suggestions = [
-            ...new Set([...currentIssue.suggestions, ...issue.suggestions]),
-          ].slice(0, 5);
-
-          if (!currentIssue.explanation && issue.explanation) {
-            currentIssue.explanation = issue.explanation;
-          }
-
-          if (currentIssue.examples.length === 0 && issue.examples?.length) {
-            currentIssue.examples = issue.examples.filter(
-              (example): example is string => Boolean(example),
-            );
-          }
-
-          continue;
-        }
-
-        issueMap.set(issueKey, {
-          category: "spelling",
-          token: issue.original,
-          count: 1,
-          suggestions: [...new Set(issue.suggestions)].slice(0, 5),
-          explanation: issue.explanation ?? null,
-          examples: issue.examples?.filter((example): example is string => Boolean(example)) ?? [],
-        });
-      }
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "맞춤법 검사를 완료하지 못했습니다.";
-
-      warnings.push(`${index + 1}번째 구간 검사에 실패했습니다. (${message})`);
-    }
-  }
+  const directHanfixSpans = await buildHanfixSpans(chunks, ignoreTerms, warnings);
+  const lookupTokens = extractLookupTokens(normalizedText);
+  const spellingSupportSpans: DetectedIssueSpan[] = [...directHanfixSpans];
 
   try {
     const headwordSet = await getKoreanHeadwordSet();
-    const particleSpacingIssues = await buildParticleSpacingIssues(
+    const mixedScriptSpans = await buildMixedScriptSpans(
+      normalizedText,
+      lookupTokens,
+      standardWordIgnoreTerms,
+      probeContext,
+      spellingSupportSpans,
+    );
+
+    spellingSupportSpans.push(...mixedScriptSpans);
+    spellingSupportSpans.push(...buildParticleSpacingSpans(normalizedText, standardWordIgnoreTerms));
+    spellingSupportSpans.push(...buildBoundNounSpacingSpans(normalizedText, standardWordIgnoreTerms));
+
+    const tokenProbeSpans = await buildTokenProbeSpans(
       normalizedText,
       standardWordIgnoreTerms,
       headwordSet,
+      probeContext,
+      spellingSupportSpans,
     );
 
-    for (const issue of particleSpacingIssues) {
-      if (issueMap.has(buildIssueKey(issue.category, issue.token))) {
-        continue;
-      }
-
-      issueMap.set(buildIssueKey(issue.category, issue.token), issue);
-    }
-
-    const compoundSpacingIssues = await buildCompoundSpacingIssues(
-      normalizedText,
-      standardWordIgnoreTerms,
-      headwordSet,
-    );
-
-    for (const issue of compoundSpacingIssues) {
-      if (hasSimilarSpellingIssue(issueMap, issue.token)) {
-        continue;
-      }
-
-      issueMap.set(buildIssueKey(issue.category, issue.token), issue);
-    }
-
-    const tokenProbeIssues = await buildTokenProbeIssues(
-      normalizedText,
-      standardWordIgnoreTerms,
-      headwordSet,
-      issueMap,
-    );
-
-    for (const issue of tokenProbeIssues) {
-      if (hasSimilarSpellingIssue(issueMap, issue.token)) {
-        continue;
-      }
-
-      issueMap.set(buildIssueKey(issue.category, issue.token), issue);
-    }
+    spellingSupportSpans.push(...tokenProbeSpans);
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "보조 맞춤법 검사를 완료하지 못했습니다.";
@@ -994,28 +1411,19 @@ export async function checkCoverLetterSpelling(
     warnings.push(`보조 맞춤법 검사에 실패했습니다. (${message})`);
   }
 
+  const mergedSpellingSpans = mergeDetectedSpans(spellingSupportSpans);
+  let mergedSpans = [...mergedSpellingSpans];
+
   try {
-    const spellingIssueTokens = new Set(
-      [...issueMap.values()]
-        .filter((issue) => issue.category === "spelling")
-        .map((issue) => normalizeStandardWordToken(issue.token)),
-    );
-    const standardWordIssues = await checkStandardWords(normalizedText, standardWordIgnoreTerms);
-
-    for (const issue of standardWordIssues) {
-      if (spellingIssueTokens.has(normalizeStandardWordToken(issue.token))) {
-        continue;
-      }
-
-      issueMap.set(buildIssueKey(issue.category, issue.token), issue);
-    }
+    const standardWordSpans = await buildStandardWordSpans(normalizedText, standardWordIgnoreTerms);
+    mergedSpans = mergeDetectedSpans([...mergedSpellingSpans, ...standardWordSpans]);
   } catch (error) {
     const message = error instanceof Error ? error.message : "표준어 검사를 완료하지 못했습니다.";
 
     warnings.push(`표준어 검사에 실패했습니다. (${message})`);
   }
 
-  const issues = [...issueMap.values()].sort(sortIssues);
+  const issues = aggregateDetectedSpans(mergedSpans);
   const spellingIssueCount = sumIssueCount(issues, "spelling");
   const standardIssueCount = sumIssueCount(issues, "standard");
 
