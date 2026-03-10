@@ -3,7 +3,10 @@ export type CoverLetterSpellcheckRequest = {
   ignoreTerms?: string[];
 };
 
+export type CoverLetterSpellcheckIssueCategory = "spelling" | "standard";
+
 export type CoverLetterSpellcheckIssue = {
+  category: CoverLetterSpellcheckIssueCategory;
   token: string;
   count: number;
   suggestions: string[];
@@ -14,6 +17,8 @@ export type CoverLetterSpellcheckIssue = {
 export type CoverLetterSpellcheckResponse = {
   checkedAt: string;
   issueCount: number;
+  spellingIssueCount: number;
+  standardIssueCount: number;
   issues: CoverLetterSpellcheckIssue[];
   warnings: string[];
 };

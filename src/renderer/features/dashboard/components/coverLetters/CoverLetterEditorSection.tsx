@@ -41,6 +41,50 @@ function formatSpellcheckTime(value: string) {
   }).format(new Date(value));
 }
 
+function buildSpellcheckResultMessage(result: CoverLetterSpellcheckResponse, isStale: boolean) {
+  if (isStale) {
+    return "답변이 수정되어 맞춤법과 표준어 검사를 다시 실행해 주세요.";
+  }
+
+  if (result.spellingIssueCount > 0 && result.standardIssueCount > 0) {
+    return `맞춤법 ${result.spellingIssueCount}건, 표준어 후보 ${result.standardIssueCount}건을 찾았습니다.`;
+  }
+
+  if (result.standardIssueCount > 0) {
+    return `표준어 후보 ${result.standardIssueCount}건을 찾았습니다.`;
+  }
+
+  if (result.spellingIssueCount > 0) {
+    return `맞춤법 의심 표현 ${result.spellingIssueCount}건을 찾았습니다.`;
+  }
+
+  if (result.warnings.length > 0) {
+    return "검사는 완료됐지만 일부 구간 경고가 있습니다.";
+  }
+
+  return "맞춤법과 표준어 검사에서 의심 표현이 발견되지 않았습니다.";
+}
+
+function buildSpellcheckIssueSummary(issue: CoverLetterSpellcheckIssue) {
+  if (issue.category === "standard") {
+    return issue.suggestions.length > 0
+      ? `표준어 후보: ${issue.suggestions.join(", ")}`
+      : "표준어 후보를 찾지 못했습니다.";
+  }
+
+  return issue.suggestions.length > 0
+    ? `추천: ${issue.suggestions.join(", ")}`
+    : "추천 후보를 찾지 못했습니다.";
+}
+
+function replaceAllOccurrences(source: string, target: string, replacement: string) {
+  if (!target) {
+    return source;
+  }
+
+  return source.split(target).join(replacement);
+}
+
 function buildDraftUpdater(
   coverLetters: DashboardController["coverLetters"],
 ): (updater: (current: CoverLetterDraft) => CoverLetterDraft) => void {
@@ -206,7 +250,7 @@ export function CoverLetterDraftSection({
       }));
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "맞춤법 검사를 불러오지 못했습니다.";
+        error instanceof Error ? error.message : "맞춤법·표준어 검사를 불러오지 못했습니다.";
 
       setSpellcheckStates((current) => ({
         ...current,
@@ -233,13 +277,34 @@ export function CoverLetterDraftSection({
     }));
   };
 
-  const spellcheckIntroMessage = "오픈소스 hanfix 기반으로 한국어 맞춤법과 띄어쓰기를 검사합니다.";
+  const applySpellcheckSuggestion = (
+    questionId: string,
+    issueToken: string,
+    suggestion: string,
+  ) => {
+    updateDraft((current) => ({
+      ...current,
+      questionItems: current.questionItems.map((question) => {
+        if (question.id !== questionId || !question.answer.includes(issueToken)) {
+          return question;
+        }
+
+        return {
+          ...question,
+          answer: replaceAllOccurrences(question.answer, issueToken, suggestion),
+        };
+      }),
+    }));
+  };
+
+  const spellcheckIntroMessage =
+    "hanfix와 표준국어대사전(korean-dict-nikl) 기반으로 맞춤법, 띄어쓰기, 표준어 후보를 함께 검사합니다.";
 
   const spellcheckIntroDetail = draft.questionItems.some(
     (item) => spellcheckStates[item.id]?.phase === "ready" && spellcheckStates[item.id]?.result?.warnings.length,
   )
-    ? "긴 답변은 자동으로 나누어 검사하고, 결과 패널에 경고를 함께 보여줍니다."
-    : "문항별 검사 버튼을 누르면 현재 답변 기준으로 결과를 바로 확인할 수 있습니다.";
+    ? "긴 답변은 자동으로 나누어 검사하고, 사전 기반 표준어 후보와 경고를 함께 보여줍니다."
+    : "문항별 검사 버튼을 누르면 현재 답변 기준으로 맞춤법과 표준어 결과를 바로 확인할 수 있습니다.";
 
   return (
     <SurfaceCard className="overflow-hidden">
@@ -407,7 +472,7 @@ export function CoverLetterDraftSection({
                       className="inline-flex items-center gap-2 rounded-xl border border-violet-200 bg-violet-50/80 px-3 py-1.5 text-[12px] font-semibold text-violet-700 transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-100 active:translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <Sparkles className={cn("h-3.5 w-3.5", isChecking && "animate-pulse")} />
-                      {isChecking ? "검사 중..." : "맞춤법 검사"}
+                      {isChecking ? "검사 중..." : "맞춤법/표준어 검사"}
                     </button>
                     <button
                       type="button"
@@ -484,13 +549,7 @@ export function CoverLetterDraftSection({
                               : "text-emerald-700",
                           )}
                         >
-                          {isStale
-                            ? "답변이 수정되어 맞춤법을 다시 검사해 주세요."
-                            : result.issueCount > 0
-                              ? `의심 표현 ${result.issueCount}건을 찾았습니다.`
-                              : result.warnings.length > 0
-                                ? "검사는 완료됐지만 일부 구간 경고가 있습니다."
-                                : "맞춤법 검사에서 의심 표현이 발견되지 않았습니다."}
+                          {buildSpellcheckResultMessage(result, isStale)}
                         </p>
                         <p className="mt-1 text-[11px] text-slate-500">
                           마지막 검사 {formatSpellcheckTime(result.checkedAt)}
@@ -503,7 +562,9 @@ export function CoverLetterDraftSection({
                             : "border-emerald-200 bg-white/80 text-emerald-700",
                         )}
                       >
-                        {result.issueCount === 0 ? "정상" : `오류 후보 ${result.issues.length}개`}
+                        {result.issueCount === 0
+                          ? "정상"
+                          : `맞춤법 ${result.spellingIssueCount} · 표준어 ${result.standardIssueCount}`}
                       </Pill>
                     </div>
 
@@ -524,18 +585,49 @@ export function CoverLetterDraftSection({
                       <div className="mt-3 grid gap-2">
                         {result.issues.slice(0, 6).map((issue: CoverLetterSpellcheckIssue) => (
                           <div
-                            key={`${item.id}-${issue.token}`}
+                            key={`${item.id}-${issue.category}-${issue.token}`}
                             className="rounded-2xl border border-white/80 bg-white/70 px-3 py-3 text-[12px] text-slate-700"
                           >
                             <div className="flex flex-wrap items-center justify-between gap-2">
-                              <span className="font-semibold text-slate-900">{issue.token}</span>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-semibold text-slate-900">{issue.token}</span>
+                                <span
+                                  className={cn(
+                                    "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold tracking-[0.14em]",
+                                    issue.category === "standard"
+                                      ? "bg-sky-100 text-sky-700"
+                                      : "bg-violet-100 text-violet-700",
+                                  )}
+                                >
+                                  {issue.category === "standard" ? "표준어" : "맞춤법"}
+                                </span>
+                              </div>
                               <span className="text-slate-500">등장 {issue.count}회</span>
                             </div>
                             <p className="mt-1 text-slate-500">
-                              {issue.suggestions.length > 0
-                                ? `추천: ${issue.suggestions.join(", ")}`
-                                : "추천 후보를 찾지 못했습니다."}
+                              {buildSpellcheckIssueSummary(issue)}
                             </p>
+                            {issue.suggestions.length > 0 ? (
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {issue.suggestions.map((suggestion) => {
+                                  const canApplySuggestion = item.answer.includes(issue.token);
+
+                                  return (
+                                    <button
+                                      key={`${item.id}-${issue.category}-${issue.token}-${suggestion}`}
+                                      type="button"
+                                      disabled={!canApplySuggestion}
+                                      onClick={() =>
+                                        applySpellcheckSuggestion(item.id, issue.token, suggestion)
+                                      }
+                                      className="inline-flex items-center rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-[11px] font-semibold text-cyan-700 transition-all duration-200 hover:-translate-y-0.5 hover:bg-cyan-100 active:translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                      {suggestion} 적용
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            ) : null}
                             {issue.explanation ? (
                               <p className="mt-1 text-slate-500">{issue.explanation}</p>
                             ) : null}
