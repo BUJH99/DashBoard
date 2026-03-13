@@ -5,14 +5,14 @@ import { CommuteMemoEditorSection } from "./location/CommuteMemoEditorSection";
 import { CompanyMemoListSection } from "./location/CompanyMemoListSection";
 import { LocationMapSection } from "./location/LocationMapSection";
 import { RouteLauncherSection } from "./location/RouteLauncherSection";
-import { OfferNotesSection } from "./offer/OfferNotesSection";
+import { OfferCompanyMetricsSection } from "./offer/OfferCompanyMetricsSection";
 import { OfferRadarSection } from "./offer/OfferRadarSection";
 
 export function OfferTab({ controller }: { controller: DashboardController }) {
   return (
     <div className="grid gap-6">
+      <OfferCompanyMetricsSection offer={controller.offer} />
       <OfferRadarSection offer={controller.offer} />
-      <OfferNotesSection offers={[controller.offer.selectedOfferA, controller.offer.selectedOfferB]} />
     </div>
   );
 }

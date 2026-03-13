@@ -795,107 +795,136 @@ export function ResumeTab({
 
           <div className="resume-print-only">
             <div className="resume-print-page">
-              <div className="resume-print-header">
-                <div className="resume-print-name">{resume.userName}</div>
-                <div className="resume-print-meta">{resume.email}</div>
-                <div className="resume-print-role">{resume.targetRole}</div>
-              </div>
-
-              <section className="resume-print-section">
-                <div className="resume-print-section-title">학력</div>
-                {resume.education.map((item) => (
-                  <div key={`print-education-${item.school}-${item.period}`} className="resume-print-item">
-                    <div>
-                      <div className="resume-print-item-title">{item.school}</div>
-                      <div className="resume-print-item-subtitle">
-                        {item.degree} · {item.major}
-                      </div>
-                      {item.gpa ? <div className="resume-print-item-detail">{item.gpa}</div> : null}
-                    </div>
-                    <div className="resume-print-pill">{item.period}</div>
+              <div className="resume-print-sheet">
+                <div className="resume-print-header">
+                  <div className="resume-print-header-main">
+                    <div className="resume-print-name">{resume.userName}</div>
+                    <div className="resume-print-role">{resume.targetRole}</div>
+                    <div className="resume-print-headline">{resume.title}</div>
                   </div>
-                ))}
-              </section>
-
-              {resume.experienceSections.map((section) => (
-                <section key={`print-${section.label}`} className="resume-print-section">
-                  <div className="resume-print-section-title">{section.label}</div>
-                  {section.items.map((item) => (
-                    <div key={`print-experience-${item.id}`} className="resume-print-item">
-                      <div>
-                        <div className="resume-print-item-title">{item.title}</div>
-                        <div className="resume-print-item-subtitle">
-                          {item.organization} · {item.role}
-                        </div>
-                        <div className="resume-print-item-bullet">{item.improvedBullet}</div>
-                      </div>
-                      <div className="resume-print-pill">{item.period}</div>
+                  <div className="resume-print-header-side">
+                    <div className="resume-print-meta-row">
+                      <span className="resume-print-meta-label">Email</span>
+                      <span className="resume-print-meta-value">{resume.email}</span>
                     </div>
-                  ))}
-                </section>
-              ))}
-
-              {resume.awards.length > 0 ? (
-                <section className="resume-print-section">
-                  <div className="resume-print-section-title">수상</div>
-                  {resume.awards.map((item) => (
-                    <div key={`print-award-${item.title}`} className="resume-print-item">
-                      <div>
-                        <div className="resume-print-item-title">{item.title}</div>
-                        <div className="resume-print-item-subtitle">{item.issuer}</div>
-                      </div>
+                    <div className="resume-print-meta-row">
+                      <span className="resume-print-meta-label">Focus</span>
+                      <span className="resume-print-meta-value">{resume.selectedCompanyName}</span>
                     </div>
-                  ))}
-                </section>
-              ) : null}
-
-              {resume.papers.length > 0 ? (
-                <section className="resume-print-section">
-                  <div className="resume-print-section-title">논문</div>
-                  {resume.papers.map((item) => (
-                    <div key={`print-paper-${item.title}`} className="resume-print-item">
-                      <div className="resume-print-item-title">{item.title}</div>
+                    <div className="resume-print-meta-row">
+                      <span className="resume-print-meta-label">Posting</span>
+                      <span className="resume-print-meta-value">{resume.selectedPostingTitle}</span>
                     </div>
-                  ))}
-                </section>
-              ) : null}
-
-              <section className="resume-print-section">
-                <div className="resume-print-section-title">자격증</div>
-                {resume.certificates.map((item) => (
-                  <div key={`print-certificate-${item.name}-${item.date}`} className="resume-print-item">
-                    <div>
-                      <div className="resume-print-item-title">{item.name}</div>
-                      <div className="resume-print-item-subtitle">{item.issuer}</div>
-                    </div>
-                    <div className="resume-print-pill">{item.date}</div>
                   </div>
-                ))}
-              </section>
-
-              <section className="resume-print-section">
-                <div className="resume-print-section-title">외국어</div>
-                {resume.languages.map((item) => (
-                  <div key={`print-language-${item.name}`} className="resume-print-item">
-                    <div>
-                      <div className="resume-print-item-title">{item.name}</div>
-                      <div className="resume-print-item-subtitle">{item.detail}</div>
-                    </div>
-                    {item.levelLabel ? <div className="resume-print-pill">{item.levelLabel}</div> : null}
-                  </div>
-                ))}
-              </section>
-
-              <section className="resume-print-section">
-                <div className="resume-print-section-title">기술 / 스킬</div>
-                <div className="resume-print-skills">
-                  {resume.skillHighlights.map((skill) => (
-                    <div key={`print-skill-${skill}`} className="resume-print-pill">
-                      {skill}
-                    </div>
-                  ))}
                 </div>
-              </section>
+
+                <div className="resume-print-summary">
+                  <div className="resume-print-section-title">Summary</div>
+                  <p className="resume-print-summary-text">{resume.summary}</p>
+                </div>
+
+                <div className="resume-print-layout">
+                  <div className="resume-print-main-column">
+                    <section className="resume-print-section">
+                      <div className="resume-print-section-title">학력</div>
+                      {resume.education.map((item) => (
+                        <div key={`print-education-${item.school}-${item.period}`} className="resume-print-item">
+                          <div>
+                            <div className="resume-print-item-title">{item.school}</div>
+                            <div className="resume-print-item-subtitle">
+                              {item.degree} · {item.major}
+                            </div>
+                            {item.gpa ? <div className="resume-print-item-detail">{item.gpa}</div> : null}
+                          </div>
+                          <div className="resume-print-pill">{item.period}</div>
+                        </div>
+                      ))}
+                    </section>
+
+                    {resume.experienceSections.map((section) => (
+                      <section key={`print-${section.label}`} className="resume-print-section">
+                        <div className="resume-print-section-title">{section.label}</div>
+                        {section.items.map((item) => (
+                          <div key={`print-experience-${item.id}`} className="resume-print-item">
+                            <div>
+                              <div className="resume-print-item-title">{item.title}</div>
+                              <div className="resume-print-item-subtitle">
+                                {item.organization} · {item.role}
+                              </div>
+                              <div className="resume-print-item-bullet">{item.improvedBullet}</div>
+                            </div>
+                            <div className="resume-print-pill">{item.period}</div>
+                          </div>
+                        ))}
+                      </section>
+                    ))}
+                  </div>
+
+                  <div className="resume-print-side-column">
+                    <section className="resume-print-section">
+                      <div className="resume-print-section-title">자격증</div>
+                      {resume.certificates.map((item) => (
+                        <div key={`print-certificate-${item.name}-${item.date}`} className="resume-print-item">
+                          <div>
+                            <div className="resume-print-item-title">{item.name}</div>
+                            <div className="resume-print-item-subtitle">{item.issuer}</div>
+                          </div>
+                          <div className="resume-print-pill">{item.date}</div>
+                        </div>
+                      ))}
+                    </section>
+
+                    <section className="resume-print-section">
+                      <div className="resume-print-section-title">외국어</div>
+                      {resume.languages.map((item) => (
+                        <div key={`print-language-${item.name}`} className="resume-print-item">
+                          <div>
+                            <div className="resume-print-item-title">{item.name}</div>
+                            <div className="resume-print-item-subtitle">{item.detail}</div>
+                          </div>
+                          {item.levelLabel ? <div className="resume-print-pill">{item.levelLabel}</div> : null}
+                        </div>
+                      ))}
+                    </section>
+
+                    <section className="resume-print-section">
+                      <div className="resume-print-section-title">기술 / 스킬</div>
+                      <div className="resume-print-skills">
+                        {resume.skillHighlights.map((skill) => (
+                          <div key={`print-skill-${skill}`} className="resume-print-pill">
+                            {skill}
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+
+                    {resume.awards.length > 0 ? (
+                      <section className="resume-print-section">
+                        <div className="resume-print-section-title">수상</div>
+                        {resume.awards.map((item) => (
+                          <div key={`print-award-${item.title}`} className="resume-print-item">
+                            <div>
+                              <div className="resume-print-item-title">{item.title}</div>
+                              <div className="resume-print-item-subtitle">{item.issuer}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </section>
+                    ) : null}
+
+                    {resume.papers.length > 0 ? (
+                      <section className="resume-print-section">
+                        <div className="resume-print-section-title">논문</div>
+                        {resume.papers.map((item) => (
+                          <div key={`print-paper-${item.title}`} className="resume-print-item">
+                            <div className="resume-print-item-title">{item.title}</div>
+                          </div>
+                        ))}
+                      </section>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
