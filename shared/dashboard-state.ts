@@ -203,6 +203,79 @@ function isResumeExperienceItem(
   );
 }
 
+function isFiniteNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function isPortfolioLearningSkillItem(
+  value: unknown,
+): value is DashboardLocalState["portfolio"]["learningSkills"][number] {
+  return (
+    isRecord(value) &&
+    typeof value.name === "string" &&
+    isFiniteNumber(value.progress) &&
+    typeof value.status === "string"
+  );
+}
+
+function isPortfolioCourseworkItem(
+  value: unknown,
+): value is DashboardLocalState["portfolio"]["coursework"][number] {
+  return (
+    isRecord(value) &&
+    typeof value.id === "number" &&
+    typeof value.semester === "string" &&
+    typeof value.name === "string" &&
+    typeof value.grade === "string" &&
+    isFiniteNumber(value.relevance) &&
+    isStringArray(value.tags)
+  );
+}
+
+function isPortfolioStudyProjectItem(
+  value: unknown,
+): value is DashboardLocalState["portfolio"]["studyProjects"][number] {
+  return (
+    isRecord(value) &&
+    typeof value.id === "number" &&
+    typeof value.name === "string" &&
+    typeof value.tech === "string" &&
+    isFiniteNumber(value.progress) &&
+    typeof value.status === "string" &&
+    typeof value.next === "string" &&
+    typeof value.link === "string"
+  );
+}
+
+function isPortfolioStudyNoteItem(
+  value: unknown,
+): value is DashboardLocalState["portfolio"]["studyNotes"][number] {
+  return (
+    isRecord(value) &&
+    typeof value.id === "number" &&
+    typeof value.title === "string" &&
+    typeof value.date === "string" &&
+    typeof value.category === "string" &&
+    typeof value.preview === "string" &&
+    typeof value.link === "string"
+  );
+}
+
+function isPortfolioProjectItem(
+  value: unknown,
+): value is DashboardLocalState["portfolio"]["projects"][number] {
+  return (
+    isRecord(value) &&
+    typeof value.id === "number" &&
+    typeof value.name === "string" &&
+    typeof value.date === "string" &&
+    typeof value.role === "string" &&
+    isStringArray(value.tech) &&
+    typeof value.impact === "string" &&
+    typeof value.link === "string"
+  );
+}
+
 export function buildDefaultDashboardState(): DashboardLocalState {
   return {
     ui: {
@@ -233,6 +306,7 @@ export function buildDefaultDashboardState(): DashboardLocalState {
       })),
     },
     location: {
+      homeAddress: "",
       routeOrigin: "수원역",
       routeDestination: "삼성전자 DS",
       companyCommuteNotes: {},
@@ -257,11 +331,19 @@ export function buildDefaultDashboardState(): DashboardLocalState {
       lastCrawledAt: null,
       periodDays: 30,
     },
+    portfolio: {
+      initialized: false,
+      learningSkills: [],
+      coursework: [],
+      studyProjects: [],
+      studyNotes: [],
+      projects: [],
+    },
     resume: {
       version: 0,
       title: "반도체 직무 지원 이력서",
       targetRole: "",
-      summary: "경험 허브에서 선택한 경험을 기반으로 정량 성과 중심의 이력서를 구성합니다.",
+      summary: "",
       userName: "",
       email: "",
       selectedExperienceIds: [1, 2, 3],
@@ -303,6 +385,7 @@ export function hydrateDashboardState(payload: unknown): DashboardLocalState {
   const jdScanner = mergeSection(defaults.jdScanner, payload.jdScanner);
   const overview = mergeSection(defaults.overview, payload.overview);
   const industry = mergeSection(defaults.industry, payload.industry);
+  const portfolio = mergeSection(defaults.portfolio, payload.portfolio);
   const resume = mergeSection(defaults.resume, payload.resume);
   const companyAnalysis = mergeSection(defaults.companyAnalysis, payload.companyAnalysis);
   const coverLetters = mergeSection(defaults.coverLetters, payload.coverLetters);
@@ -342,6 +425,18 @@ export function hydrateDashboardState(payload: unknown): DashboardLocalState {
     },
     location: {
       ...location,
+      homeAddress:
+        typeof location.homeAddress === "string"
+          ? location.homeAddress
+          : defaults.location.homeAddress,
+      routeOrigin:
+        typeof location.routeOrigin === "string"
+          ? location.routeOrigin
+          : defaults.location.routeOrigin,
+      routeDestination:
+        typeof location.routeDestination === "string"
+          ? location.routeDestination
+          : defaults.location.routeDestination,
       companyCommuteNotes: isRecord(location.companyCommuteNotes)
         ? (location.companyCommuteNotes as DashboardLocalState["location"]["companyCommuteNotes"])
         : defaults.location.companyCommuteNotes,
@@ -387,6 +482,27 @@ export function hydrateDashboardState(payload: unknown): DashboardLocalState {
         typeof industry.periodDays === "number" && Number.isFinite(industry.periodDays) && industry.periodDays > 0
           ? industry.periodDays
           : defaults.industry.periodDays,
+    },
+    portfolio: {
+      initialized:
+        typeof portfolio.initialized === "boolean"
+          ? portfolio.initialized
+          : defaults.portfolio.initialized,
+      learningSkills: Array.isArray(portfolio.learningSkills)
+        ? portfolio.learningSkills.filter(isPortfolioLearningSkillItem)
+        : defaults.portfolio.learningSkills,
+      coursework: Array.isArray(portfolio.coursework)
+        ? portfolio.coursework.filter(isPortfolioCourseworkItem)
+        : defaults.portfolio.coursework,
+      studyProjects: Array.isArray(portfolio.studyProjects)
+        ? portfolio.studyProjects.filter(isPortfolioStudyProjectItem)
+        : defaults.portfolio.studyProjects,
+      studyNotes: Array.isArray(portfolio.studyNotes)
+        ? portfolio.studyNotes.filter(isPortfolioStudyNoteItem)
+        : defaults.portfolio.studyNotes,
+      projects: Array.isArray(portfolio.projects)
+        ? portfolio.projects.filter(isPortfolioProjectItem)
+        : defaults.portfolio.projects,
     },
     resume: {
       version: typeof resume.version === "number" ? resume.version : defaults.resume.version,

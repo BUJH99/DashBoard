@@ -12,7 +12,6 @@ import {
   FileText,
   GraduationCap,
   Languages,
-  ListChecks,
   Plus,
   Trophy,
   Trash2,
@@ -519,449 +518,60 @@ export function ResumeTab({
         <ResumeMetricCard label="현재 점수" value={`${resume.metrics.score}점`} tone="violet" />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[0.34fr_0.66fr]">
-        <div className="space-y-4">
-          <SurfaceCard className="overflow-hidden">
-            <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-violet-200 bg-violet-50 text-violet-600">
-                    <FileText className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-[16px] font-black text-slate-900">나의 스펙</h3>
-                    <p className="text-xs text-slate-500">총 {resume.specTotalCount}개 항목이 연결되어 있습니다.</p>
-                  </div>
+      <div className="grid gap-6 xl:grid-cols-[0.32fr_0.68fr] xl:items-start">
+        <SurfaceCard className="overflow-hidden">
+          <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-violet-200 bg-violet-50 text-violet-600">
+                  <FileText className="h-4 w-4" />
                 </div>
-                <div className="w-24">
-                  <p className="text-right text-sm font-black text-violet-600">{resume.specProgress}%</p>
-                  <div className="mt-2">
-                    <ProgressBar value={resume.specProgress} color="#6366f1" />
-                  </div>
+                <div>
+                  <h3 className="text-[16px] font-black text-slate-900">나의 스펙</h3>
+                  <p className="text-xs text-slate-500">총 {resume.specTotalCount}개 항목이 연결되어 있습니다.</p>
+                </div>
+              </div>
+              <div className="w-24">
+                <p className="text-right text-sm font-black text-violet-600">{resume.specProgress}%</p>
+                <div className="mt-2">
+                  <ProgressBar value={resume.specProgress} color="#6366f1" />
                 </div>
               </div>
             </div>
+          </div>
 
-            <div className="p-5">
-              <div className="rounded-[20px] border border-blue-100 bg-blue-50/70 px-4 py-3 text-sm leading-6 text-slate-600">
-                스펙 등록은 이력서 평가와 현재 점수 계산에 함께 반영됩니다.
-              </div>
-
-              <div className="mt-4 grid gap-3">
-                {resume.specSections.map((section) => (
-                  <ResumeSpecSectionCard
-                    key={section.id}
-                    section={section}
-                    expanded={expandedSpecSectionId === section.id}
-                    onToggle={() =>
-                      setExpandedSpecSectionId((current) =>
-                        current === section.id ? null : section.id,
-                      )
-                    }
-                  />
-                ))}
-              </div>
-
-              <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
-                <p className="text-sm text-slate-500">총 {resume.specTotalCount}개 항목 등록됨</p>
-                <button
-                  type="button"
-                  onClick={resume.openExperienceHub}
-                  className="text-sm font-semibold text-blue-600 transition hover:text-blue-700"
-                >
-                  경험 허브 열기
-                </button>
-              </div>
+          <div className="p-5">
+            <div className="rounded-[20px] border border-blue-100 bg-blue-50/70 px-4 py-3 text-sm leading-6 text-slate-600">
+              스펙 등록은 이력서 평가와 현재 점수 계산에 함께 반영됩니다.
             </div>
-          </SurfaceCard>
 
-          <SurfaceCard className="overflow-hidden">
-            <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-violet-500" />
-                <h3 className="text-[16px] font-black text-slate-900">작성 설정</h3>
-              </div>
+            <div className="mt-4 grid gap-3">
+              {resume.specSections.map((section) => (
+                <ResumeSpecSectionCard
+                  key={section.id}
+                  section={section}
+                  expanded={expandedSpecSectionId === section.id}
+                  onToggle={() =>
+                    setExpandedSpecSectionId((current) =>
+                      current === section.id ? null : section.id,
+                    )
+                  }
+                />
+              ))}
             </div>
-            <div className="p-5">
-              <div className="grid gap-4">
-                <label className="grid gap-1 text-sm">
-                  <span className="font-semibold text-slate-700">문서 제목</span>
-                  <input
-                    value={resume.title}
-                    onChange={(event) => resume.updateField("title", event.target.value)}
-                    className="rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-300"
-                  />
-                </label>
-                <label className="grid gap-1 text-sm">
-                  <span className="font-semibold text-slate-700">타깃 직무</span>
-                  <input
-                    value={resume.targetRole}
-                    onChange={(event) => resume.updateField("targetRole", event.target.value)}
-                    className="rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-300"
-                  />
-                </label>
-                <label className="grid gap-1 text-sm">
-                  <span className="font-semibold text-slate-700">한 줄 요약</span>
-                  <textarea
-                    value={resume.summary}
-                    onChange={(event) => resume.updateField("summary", event.target.value)}
-                    className="min-h-[100px] rounded-2xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-300"
-                  />
-                </label>
-              </div>
 
-              <div className="mt-5 rounded-[24px] border border-blue-100 bg-blue-50/70 p-4 text-sm leading-7 text-slate-600">
-                현재 선택된 회사는 <span className="font-semibold text-slate-900">{resume.selectedCompanyName}</span>, 기준 공고는{" "}
-                <span className="font-semibold text-slate-900">{resume.selectedPostingTitle}</span>입니다.
-              </div>
-
-              <div className="mt-5">
-                <div className="flex items-center gap-2">
-                  <ListChecks className="h-4 w-4 text-slate-500" />
-                  <h4 className="text-sm font-black text-slate-900">포함할 경험 선택</h4>
-                </div>
-                <div className="mt-3 grid gap-3">
-                  {resume.experienceOptions.map((item) => (
-                    <label
-                      key={item.id}
-                      className={cn(
-                        "flex cursor-pointer items-start gap-3 rounded-[22px] border px-4 py-3 transition",
-                        selectedExperienceIdSet.has(item.id)
-                          ? "border-emerald-200 bg-emerald-50/60"
-                          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50",
-                      )}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedExperienceIdSet.has(item.id)}
-                        onChange={() => resume.toggleExperience(item.id)}
-                        className="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-600"
-                      />
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-sm font-bold text-slate-900">{item.title}</p>
-                          {item.featured ? <Pill className="border-amber-200 bg-amber-50 text-amber-700">핵심</Pill> : null}
-                        </div>
-                        <p className="mt-1 text-xs text-slate-500">
-                          {item.period} · {item.role}
-                        </p>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </div>
+            <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
+              <p className="text-sm text-slate-500">총 {resume.specTotalCount}개 항목 등록됨</p>
+              <button
+                type="button"
+                onClick={resume.openExperienceHub}
+                className="text-sm font-semibold text-blue-600 transition hover:text-blue-700"
+              >
+                경험 허브 열기
+              </button>
             </div>
-          </SurfaceCard>
-
-          <SurfaceCard className="overflow-hidden">
-            <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
-              <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-blue-500" />
-                <h3 className="text-[16px] font-black text-slate-900">이력서 내용 편집</h3>
-              </div>
-              <p className="mt-1 text-xs text-slate-500">아래에서 수정한 값은 우측 이력서 본문과 분석 결과에 바로 반영됩니다.</p>
-            </div>
-            <div className="grid gap-3 p-5">
-              <ResumeEditorSection
-                title="기본 정보"
-                description="이름과 이메일을 직접 수정합니다."
-                expanded={expandedEditorSectionId === "basics"}
-                onToggle={() =>
-                  setExpandedEditorSectionId((current) => (current === "basics" ? null : "basics"))
-                }
-              >
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-1">
-                  <EditorInput label="이름" value={resume.userName} onChange={(value) => resume.updateField("userName", value)} />
-                  <EditorInput label="이메일" value={resume.email} onChange={(value) => resume.updateField("email", value)} type="email" />
-                </div>
-              </ResumeEditorSection>
-
-              <ResumeEditorSection
-                title="학력"
-                description="학교, 전공, GPA, 재학 상태를 수정합니다."
-                expanded={expandedEditorSectionId === "education"}
-                onToggle={() =>
-                  setExpandedEditorSectionId((current) => (current === "education" ? null : "education"))
-                }
-                actionLabel="학력 추가"
-                onAction={() => {
-                  resume.addCollectionItem("education");
-                  setExpandedEditorSectionId("education");
-                }}
-              >
-                <div className="grid gap-3">
-                  {resume.education.map((item, index) => (
-                    <EditorItemCard
-                      key={`education-${index}`}
-                      title={item.school || `학력 ${index + 1}`}
-                      subtitle={item.period || "기간 미입력"}
-                      onRemove={() => resume.removeCollectionItem("education", index)}
-                    >
-                      <div className="grid gap-3">
-                        <div className="grid gap-3 md:grid-cols-2">
-                          <EditorInput label="학교" value={item.school} onChange={(value) => resume.updateCollectionItem("education", index, "school", value)} />
-                          <EditorPeriodRange label="기간" value={item.period} onChange={(value) => resume.updateCollectionItem("education", index, "period", value)} />
-                        </div>
-                        <div className="grid gap-3 md:grid-cols-2">
-                          <EditorInput label="학위" value={item.degree} onChange={(value) => resume.updateCollectionItem("education", index, "degree", value)} />
-                          <EditorInput label="상태" value={item.statusLabel ?? ""} onChange={(value) => resume.updateCollectionItem("education", index, "statusLabel", value)} />
-                        </div>
-                        <EditorInput label="전공" value={item.major} onChange={(value) => resume.updateCollectionItem("education", index, "major", value)} />
-                        <EditorInput label="GPA" value={item.gpa} onChange={(value) => resume.updateCollectionItem("education", index, "gpa", value)} />
-                      </div>
-                    </EditorItemCard>
-                  ))}
-                </div>
-              </ResumeEditorSection>
-
-              <ResumeEditorSection
-                title="경력 / 프로젝트 / 핵심 경험"
-                description="선택 여부와 무관하게 모든 경험 초안을 직접 수정할 수 있습니다."
-                expanded={expandedEditorSectionId === "experiences"}
-                onToggle={() =>
-                  setExpandedEditorSectionId((current) => (current === "experiences" ? null : "experiences"))
-                }
-                actionLabel="경험 추가"
-                onAction={() => {
-                  resume.addExperience();
-                  setExpandedEditorSectionId("experiences");
-                }}
-              >
-                <div className="grid gap-3">
-                  {resume.allExperiences.map((item) => (
-                    <EditorItemCard
-                      key={`experience-${item.id}`}
-                      title={item.title || `경험 ${item.id}`}
-                      subtitle={selectedExperienceIdSet.has(item.id) ? "현재 이력서에 포함됨" : "현재 이력서에서 제외됨"}
-                      onRemove={() => resume.removeExperience(item.id)}
-                    >
-                      <div className="grid gap-3">
-                        <div className="grid gap-3 md:grid-cols-2">
-                          <EditorInput label="제목" value={item.title} onChange={(value) => resume.updateExperienceField(item.id, "title", value)} />
-                          <EditorInput label="기관 / 회사" value={item.organization} onChange={(value) => resume.updateExperienceField(item.id, "organization", value)} />
-                        </div>
-                        <div className="grid gap-3 md:grid-cols-2">
-                          <EditorPeriodRange label="기간" value={item.period} onChange={(value) => resume.updateExperienceField(item.id, "period", value)} />
-                          <EditorInput label="역할" value={item.role} onChange={(value) => resume.updateExperienceField(item.id, "role", value)} />
-                        </div>
-                        <div className="grid gap-3 md:grid-cols-2">
-                          <EditorField label="카테고리">
-                            <select
-                              value={item.category}
-                              onChange={(event) => resume.updateExperienceField(item.id, "category", event.target.value)}
-                              className="rounded-xl border border-slate-200 bg-white px-3 py-2 outline-none focus:border-cyan-300"
-                            >
-                              <option value="project">프로젝트</option>
-                              <option value="internship">인턴/직무경험</option>
-                              <option value="activity">대외활동</option>
-                              <option value="contest">공모전/해커톤</option>
-                              <option value="research">연구/논문</option>
-                            </select>
-                          </EditorField>
-                          <EditorInput label="팀/조직 정보" value={item.teamLabel} onChange={(value) => resume.updateExperienceField(item.id, "teamLabel", value)} />
-                        </div>
-                        <label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700">
-                          <input
-                            type="checkbox"
-                            checked={item.featured}
-                            onChange={(event) => resume.updateExperienceField(item.id, "featured", event.target.checked)}
-                            className="h-4 w-4 rounded border-slate-300 text-amber-500"
-                          />
-                          핵심 경험으로 표시
-                        </label>
-                        <EditorTextArea label="활동 내용" value={item.overview} onChange={(value) => resume.updateExperienceField(item.id, "overview", value)} />
-                        <EditorTextArea label="성과 / 결과" value={item.outcome} onChange={(value) => resume.updateExperienceField(item.id, "outcome", value)} />
-                        <EditorTextArea label="배운 점" value={item.learning} onChange={(value) => resume.updateExperienceField(item.id, "learning", value)} />
-                        <EditorTextArea label="Before 문장" value={item.rawBullet} onChange={(value) => resume.updateExperienceField(item.id, "rawBullet", value)} />
-                        <EditorTextArea label="After 문장" value={item.improvedBullet} onChange={(value) => resume.updateExperienceField(item.id, "improvedBullet", value)} />
-                        <EditorTextArea label="수정 이유" value={item.bulletReason} onChange={(value) => resume.updateExperienceField(item.id, "bulletReason", value)} minHeightClassName="min-h-[80px]" />
-                        <div className="grid gap-3 md:grid-cols-2">
-                          <EditorInput
-                            label="태그"
-                            value={item.tags.join(", ")}
-                            onChange={(value) => resume.updateExperienceField(item.id, "tags", value)}
-                            placeholder="쉼표로 구분해 입력"
-                          />
-                          <EditorInput
-                            label="키워드"
-                            value={item.keywords.join(", ")}
-                            onChange={(value) => resume.updateExperienceField(item.id, "keywords", value)}
-                            placeholder="쉼표로 구분해 입력"
-                          />
-                        </div>
-                      </div>
-                    </EditorItemCard>
-                  ))}
-                </div>
-              </ResumeEditorSection>
-
-              <ResumeEditorSection
-                title="자격증"
-                description="이력서 본문과 스펙 카드에 함께 표시됩니다."
-                expanded={expandedEditorSectionId === "certificates"}
-                onToggle={() =>
-                  setExpandedEditorSectionId((current) => (current === "certificates" ? null : "certificates"))
-                }
-                actionLabel="자격증 추가"
-                onAction={() => {
-                  resume.addCollectionItem("certificates");
-                  setExpandedEditorSectionId("certificates");
-                }}
-              >
-                <div className="grid gap-3">
-                  {resume.certificates.map((item, index) => (
-                    <EditorItemCard
-                      key={`certificate-${index}`}
-                      title={item.name || `자격증 ${index + 1}`}
-                      subtitle={item.date || "취득일 미입력"}
-                      onRemove={() => resume.removeCollectionItem("certificates", index)}
-                    >
-                      <div className="grid gap-3 md:grid-cols-2">
-                        <EditorInput label="자격증명" value={item.name} onChange={(value) => resume.updateCollectionItem("certificates", index, "name", value)} />
-                        <EditorMonthInput label="취득일" value={item.date} onChange={(value) => resume.updateCollectionItem("certificates", index, "date", value)} />
-                        <div className="md:col-span-2">
-                          <EditorInput label="발급기관" value={item.issuer} onChange={(value) => resume.updateCollectionItem("certificates", index, "issuer", value)} />
-                        </div>
-                      </div>
-                    </EditorItemCard>
-                  ))}
-                </div>
-              </ResumeEditorSection>
-
-              <ResumeEditorSection
-                title="외국어"
-                description="언어, 점수/시험명, 숙련도 배지를 수정합니다."
-                expanded={expandedEditorSectionId === "languages"}
-                onToggle={() =>
-                  setExpandedEditorSectionId((current) => (current === "languages" ? null : "languages"))
-                }
-                actionLabel="어학 추가"
-                onAction={() => {
-                  resume.addCollectionItem("languages");
-                  setExpandedEditorSectionId("languages");
-                }}
-              >
-                <div className="grid gap-3">
-                  {resume.languages.map((item, index) => (
-                    <EditorItemCard
-                      key={`language-${index}`}
-                      title={item.name || `어학 ${index + 1}`}
-                      subtitle={item.levelLabel || "등급 미입력"}
-                      onRemove={() => resume.removeCollectionItem("languages", index)}
-                    >
-                      <div className="grid gap-3">
-                        <div className="grid gap-3 md:grid-cols-2">
-                          <EditorInput label="언어" value={item.name} onChange={(value) => resume.updateCollectionItem("languages", index, "name", value)} />
-                          <EditorInput label="등급" value={item.levelLabel ?? ""} onChange={(value) => resume.updateCollectionItem("languages", index, "levelLabel", value)} />
-                        </div>
-                        <EditorInput label="세부 내용" value={item.detail} onChange={(value) => resume.updateCollectionItem("languages", index, "detail", value)} />
-                      </div>
-                    </EditorItemCard>
-                  ))}
-                </div>
-              </ResumeEditorSection>
-
-              <ResumeEditorSection
-                title="기술 스택"
-                description="스킬명, 분야, 숙련도를 수정합니다."
-                expanded={expandedEditorSectionId === "skills"}
-                onToggle={() =>
-                  setExpandedEditorSectionId((current) => (current === "skills" ? null : "skills"))
-                }
-                actionLabel="스택 추가"
-                onAction={() => {
-                  resume.addCollectionItem("skillSpecs");
-                  setExpandedEditorSectionId("skills");
-                }}
-              >
-                <div className="grid gap-3">
-                  {resume.skillSpecs.map((item, index) => (
-                    <EditorItemCard
-                      key={`skill-${index}`}
-                      title={item.name || `기술 ${index + 1}`}
-                      subtitle={item.levelLabel}
-                      onRemove={() => resume.removeCollectionItem("skillSpecs", index)}
-                    >
-                      <div className="grid gap-3 md:grid-cols-2">
-                        <EditorInput label="기술명" value={item.name} onChange={(value) => resume.updateCollectionItem("skillSpecs", index, "name", value)} />
-                        <EditorInput label="분야" value={item.track} onChange={(value) => resume.updateCollectionItem("skillSpecs", index, "track", value)} />
-                        <div className="md:col-span-2">
-                          <EditorField label="숙련도">
-                            <select
-                              value={item.levelLabel}
-                              onChange={(event) => resume.updateCollectionItem("skillSpecs", index, "levelLabel", event.target.value)}
-                              className="rounded-xl border border-slate-200 bg-white px-3 py-2 outline-none focus:border-cyan-300"
-                            >
-                              <option value="상">상</option>
-                              <option value="중">중</option>
-                              <option value="하">하</option>
-                            </select>
-                          </EditorField>
-                        </div>
-                      </div>
-                    </EditorItemCard>
-                  ))}
-                </div>
-              </ResumeEditorSection>
-
-              <ResumeEditorSection
-                title="수상"
-                description="수상명과 주최 기관을 편집합니다."
-                expanded={expandedEditorSectionId === "awards"}
-                onToggle={() =>
-                  setExpandedEditorSectionId((current) => (current === "awards" ? null : "awards"))
-                }
-                actionLabel="수상 추가"
-                onAction={() => {
-                  resume.addCollectionItem("awards");
-                  setExpandedEditorSectionId("awards");
-                }}
-              >
-                <div className="grid gap-3">
-                  {resume.awards.map((item, index) => (
-                    <EditorItemCard
-                      key={`award-${index}`}
-                      title={item.title || `수상 ${index + 1}`}
-                      subtitle={item.issuer || "기관 미입력"}
-                      onRemove={() => resume.removeCollectionItem("awards", index)}
-                    >
-                      <div className="grid gap-3 md:grid-cols-2">
-                        <EditorInput label="수상명" value={item.title} onChange={(value) => resume.updateCollectionItem("awards", index, "title", value)} />
-                        <EditorInput label="주최 기관" value={item.issuer} onChange={(value) => resume.updateCollectionItem("awards", index, "issuer", value)} />
-                      </div>
-                    </EditorItemCard>
-                  ))}
-                </div>
-              </ResumeEditorSection>
-
-              <ResumeEditorSection
-                title="논문"
-                description="논문 제목을 편집합니다."
-                expanded={expandedEditorSectionId === "papers"}
-                onToggle={() =>
-                  setExpandedEditorSectionId((current) => (current === "papers" ? null : "papers"))
-                }
-                actionLabel="논문 추가"
-                onAction={() => {
-                  resume.addCollectionItem("papers");
-                  setExpandedEditorSectionId("papers");
-                }}
-              >
-                <div className="grid gap-3">
-                  {resume.papers.map((item, index) => (
-                    <EditorItemCard
-                      key={`paper-${index}`}
-                      title={item.title || `논문 ${index + 1}`}
-                      onRemove={() => resume.removeCollectionItem("papers", index)}
-                    >
-                      <EditorInput label="논문 제목" value={item.title} onChange={(value) => resume.updateCollectionItem("papers", index, "title", value)} />
-                    </EditorItemCard>
-                  ))}
-                </div>
-              </ResumeEditorSection>
-            </div>
-          </SurfaceCard>
-        </div>
+          </div>
+        </SurfaceCard>
 
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2">
@@ -981,11 +591,6 @@ export function ResumeTab({
                   </div>
 
                   <div className="mt-8 border-t-2 border-slate-700 pt-7">
-                    <section className="mb-7">
-                      <h4 className="mb-4 text-lg font-black text-violet-600">한 줄 요약</h4>
-                      <p className="text-[15px] leading-7 text-slate-700">{resume.summary}</p>
-                    </section>
-
                     <section className="mb-7">
                       <h4 className="mb-4 text-lg font-black text-violet-600">학력</h4>
                       <div className="grid gap-5">
@@ -1034,6 +639,31 @@ export function ResumeTab({
                               <p className="text-sm text-slate-600">{item.issuer}</p>
                             </div>
                             <Pill className="h-fit border-slate-200 bg-slate-100 text-slate-600">{item.date}</Pill>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+
+                    <section className="mb-7">
+                      <h4 className="mb-4 text-lg font-black text-violet-600">수상</h4>
+                      <div className="grid gap-4">
+                        {resume.awards.map((item) => (
+                          <div key={`${item.title}-${item.issuer}`} className="flex justify-between gap-4 border-t border-slate-100 pt-4 first:border-t-0 first:pt-0">
+                            <div>
+                              <p className="font-bold text-slate-900">{item.title}</p>
+                              <p className="text-sm text-slate-600">{item.issuer}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+
+                    <section className="mb-7">
+                      <h4 className="mb-4 text-lg font-black text-violet-600">논문</h4>
+                      <div className="grid gap-4">
+                        {resume.papers.map((item) => (
+                          <div key={item.title} className="border-t border-slate-100 pt-4 first:border-t-0 first:pt-0">
+                            <p className="font-bold text-slate-900">{item.title}</p>
                           </div>
                         ))}
                       </div>
@@ -1162,7 +792,447 @@ export function ResumeTab({
               </div>
             </SurfaceCard>
           ) : null}
+
+          <div className="resume-print-only">
+            <div className="resume-print-page">
+              <div className="resume-print-header">
+                <div className="resume-print-name">{resume.userName}</div>
+                <div className="resume-print-meta">{resume.email}</div>
+                <div className="resume-print-role">{resume.targetRole}</div>
+              </div>
+
+              <section className="resume-print-section">
+                <div className="resume-print-section-title">학력</div>
+                {resume.education.map((item) => (
+                  <div key={`print-education-${item.school}-${item.period}`} className="resume-print-item">
+                    <div>
+                      <div className="resume-print-item-title">{item.school}</div>
+                      <div className="resume-print-item-subtitle">
+                        {item.degree} · {item.major}
+                      </div>
+                      {item.gpa ? <div className="resume-print-item-detail">{item.gpa}</div> : null}
+                    </div>
+                    <div className="resume-print-pill">{item.period}</div>
+                  </div>
+                ))}
+              </section>
+
+              {resume.experienceSections.map((section) => (
+                <section key={`print-${section.label}`} className="resume-print-section">
+                  <div className="resume-print-section-title">{section.label}</div>
+                  {section.items.map((item) => (
+                    <div key={`print-experience-${item.id}`} className="resume-print-item">
+                      <div>
+                        <div className="resume-print-item-title">{item.title}</div>
+                        <div className="resume-print-item-subtitle">
+                          {item.organization} · {item.role}
+                        </div>
+                        <div className="resume-print-item-bullet">{item.improvedBullet}</div>
+                      </div>
+                      <div className="resume-print-pill">{item.period}</div>
+                    </div>
+                  ))}
+                </section>
+              ))}
+
+              {resume.awards.length > 0 ? (
+                <section className="resume-print-section">
+                  <div className="resume-print-section-title">수상</div>
+                  {resume.awards.map((item) => (
+                    <div key={`print-award-${item.title}`} className="resume-print-item">
+                      <div>
+                        <div className="resume-print-item-title">{item.title}</div>
+                        <div className="resume-print-item-subtitle">{item.issuer}</div>
+                      </div>
+                    </div>
+                  ))}
+                </section>
+              ) : null}
+
+              {resume.papers.length > 0 ? (
+                <section className="resume-print-section">
+                  <div className="resume-print-section-title">논문</div>
+                  {resume.papers.map((item) => (
+                    <div key={`print-paper-${item.title}`} className="resume-print-item">
+                      <div className="resume-print-item-title">{item.title}</div>
+                    </div>
+                  ))}
+                </section>
+              ) : null}
+
+              <section className="resume-print-section">
+                <div className="resume-print-section-title">자격증</div>
+                {resume.certificates.map((item) => (
+                  <div key={`print-certificate-${item.name}-${item.date}`} className="resume-print-item">
+                    <div>
+                      <div className="resume-print-item-title">{item.name}</div>
+                      <div className="resume-print-item-subtitle">{item.issuer}</div>
+                    </div>
+                    <div className="resume-print-pill">{item.date}</div>
+                  </div>
+                ))}
+              </section>
+
+              <section className="resume-print-section">
+                <div className="resume-print-section-title">외국어</div>
+                {resume.languages.map((item) => (
+                  <div key={`print-language-${item.name}`} className="resume-print-item">
+                    <div>
+                      <div className="resume-print-item-title">{item.name}</div>
+                      <div className="resume-print-item-subtitle">{item.detail}</div>
+                    </div>
+                    {item.levelLabel ? <div className="resume-print-pill">{item.levelLabel}</div> : null}
+                  </div>
+                ))}
+              </section>
+
+              <section className="resume-print-section">
+                <div className="resume-print-section-title">기술 / 스킬</div>
+                <div className="resume-print-skills">
+                  {resume.skillHighlights.map((skill) => (
+                    <div key={`print-skill-${skill}`} className="resume-print-pill">
+                      {skill}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+          </div>
         </div>
+
+        <SurfaceCard className="overflow-hidden xl:col-span-2">
+          <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-blue-500" />
+              <h3 className="text-[16px] font-black text-slate-900">이력서 내용 편집</h3>
+            </div>
+            <p className="mt-1 text-xs text-slate-500">문서 제목과 타깃 직무를 포함한 편집 내용이 우측 이력서 본문과 분석 결과에 바로 반영됩니다.</p>
+          </div>
+
+          <div className="grid gap-3 p-5">
+            <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+              <label className="grid gap-1 text-sm">
+                <span className="font-semibold text-slate-700">문서 제목</span>
+                <input
+                  value={resume.title}
+                  onChange={(event) => resume.updateField("title", event.target.value)}
+                  className="rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-300"
+                />
+              </label>
+              <label className="grid gap-1 text-sm">
+                <span className="font-semibold text-slate-700">타깃 직무</span>
+                <input
+                  value={resume.targetRole}
+                  onChange={(event) => resume.updateField("targetRole", event.target.value)}
+                  className="rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-300"
+                />
+              </label>
+            </div>
+
+            <div className="rounded-[24px] border border-blue-100 bg-blue-50/70 p-4 text-sm leading-7 text-slate-600">
+              현재 선택된 회사는 <span className="font-semibold text-slate-900">{resume.selectedCompanyName}</span>, 기준 공고는{" "}
+              <span className="font-semibold text-slate-900">{resume.selectedPostingTitle}</span>입니다.
+            </div>
+
+            <ResumeEditorSection
+              title="기본 정보"
+              description="이름과 이메일을 직접 수정합니다."
+              expanded={expandedEditorSectionId === "basics"}
+              onToggle={() =>
+                setExpandedEditorSectionId((current) => (current === "basics" ? null : "basics"))
+              }
+            >
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-2">
+                <EditorInput label="이름" value={resume.userName} onChange={(value) => resume.updateField("userName", value)} />
+                <EditorInput label="이메일" value={resume.email} onChange={(value) => resume.updateField("email", value)} type="email" />
+              </div>
+            </ResumeEditorSection>
+
+            <ResumeEditorSection
+              title="학력"
+              description="학교, 전공, GPA, 재학 상태를 수정합니다."
+              expanded={expandedEditorSectionId === "education"}
+              onToggle={() =>
+                setExpandedEditorSectionId((current) => (current === "education" ? null : "education"))
+              }
+              actionLabel="학력 추가"
+              onAction={() => {
+                resume.addCollectionItem("education");
+                setExpandedEditorSectionId("education");
+              }}
+            >
+              <div className="grid gap-3">
+                {resume.education.map((item, index) => (
+                  <EditorItemCard
+                    key={`education-${index}`}
+                    title={item.school || `학력 ${index + 1}`}
+                    subtitle={item.period || "기간 미입력"}
+                    onRemove={() => resume.removeCollectionItem("education", index)}
+                  >
+                    <div className="grid gap-3">
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <EditorInput label="학교" value={item.school} onChange={(value) => resume.updateCollectionItem("education", index, "school", value)} />
+                        <EditorPeriodRange label="기간" value={item.period} onChange={(value) => resume.updateCollectionItem("education", index, "period", value)} />
+                      </div>
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <EditorInput label="학위" value={item.degree} onChange={(value) => resume.updateCollectionItem("education", index, "degree", value)} />
+                        <EditorInput label="상태" value={item.statusLabel ?? ""} onChange={(value) => resume.updateCollectionItem("education", index, "statusLabel", value)} />
+                      </div>
+                      <EditorInput label="전공" value={item.major} onChange={(value) => resume.updateCollectionItem("education", index, "major", value)} />
+                      <EditorInput label="GPA" value={item.gpa} onChange={(value) => resume.updateCollectionItem("education", index, "gpa", value)} />
+                    </div>
+                  </EditorItemCard>
+                ))}
+              </div>
+            </ResumeEditorSection>
+
+            <ResumeEditorSection
+              title="경력 / 프로젝트 / 핵심 경험"
+              description="경험 허브에서 고른 항목 기준으로 연결되며, 여기서는 모든 경험 초안을 직접 다듬을 수 있습니다."
+              expanded={expandedEditorSectionId === "experiences"}
+              onToggle={() =>
+                setExpandedEditorSectionId((current) => (current === "experiences" ? null : "experiences"))
+              }
+              actionLabel="경험 추가"
+              onAction={() => {
+                resume.addExperience();
+                setExpandedEditorSectionId("experiences");
+              }}
+            >
+              <div className="grid gap-3">
+                {resume.allExperiences.map((item) => (
+                  <EditorItemCard
+                    key={`experience-${item.id}`}
+                    title={item.title || `경험 ${item.id}`}
+                    subtitle={selectedExperienceIdSet.has(item.id) ? "현재 이력서에 포함됨" : "현재 이력서에서 제외됨"}
+                    onRemove={() => resume.removeExperience(item.id)}
+                  >
+                    <div className="grid gap-3">
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <EditorInput label="제목" value={item.title} onChange={(value) => resume.updateExperienceField(item.id, "title", value)} />
+                        <EditorInput label="기관 / 회사" value={item.organization} onChange={(value) => resume.updateExperienceField(item.id, "organization", value)} />
+                      </div>
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <EditorPeriodRange label="기간" value={item.period} onChange={(value) => resume.updateExperienceField(item.id, "period", value)} />
+                        <EditorInput label="역할" value={item.role} onChange={(value) => resume.updateExperienceField(item.id, "role", value)} />
+                      </div>
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <EditorField label="카테고리">
+                          <select
+                            value={item.category}
+                            onChange={(event) => resume.updateExperienceField(item.id, "category", event.target.value)}
+                            className="rounded-xl border border-slate-200 bg-white px-3 py-2 outline-none focus:border-cyan-300"
+                          >
+                            <option value="project">프로젝트</option>
+                            <option value="internship">인턴/직무경험</option>
+                            <option value="activity">대외활동</option>
+                            <option value="contest">공모전/해커톤</option>
+                            <option value="research">연구/논문</option>
+                          </select>
+                        </EditorField>
+                        <EditorInput label="팀/조직 정보" value={item.teamLabel} onChange={(value) => resume.updateExperienceField(item.id, "teamLabel", value)} />
+                      </div>
+                      <label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700">
+                        <input
+                          type="checkbox"
+                          checked={item.featured}
+                          onChange={(event) => resume.updateExperienceField(item.id, "featured", event.target.checked)}
+                          className="h-4 w-4 rounded border-slate-300 text-amber-500"
+                        />
+                        핵심 경험으로 표시
+                      </label>
+                      <EditorTextArea label="활동 내용" value={item.overview} onChange={(value) => resume.updateExperienceField(item.id, "overview", value)} />
+                      <EditorTextArea label="성과 / 결과" value={item.outcome} onChange={(value) => resume.updateExperienceField(item.id, "outcome", value)} />
+                      <EditorTextArea label="배운 점" value={item.learning} onChange={(value) => resume.updateExperienceField(item.id, "learning", value)} />
+                      <EditorTextArea label="Before 문장" value={item.rawBullet} onChange={(value) => resume.updateExperienceField(item.id, "rawBullet", value)} />
+                      <EditorTextArea label="After 문장" value={item.improvedBullet} onChange={(value) => resume.updateExperienceField(item.id, "improvedBullet", value)} />
+                      <EditorTextArea label="수정 이유" value={item.bulletReason} onChange={(value) => resume.updateExperienceField(item.id, "bulletReason", value)} minHeightClassName="min-h-[80px]" />
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <EditorInput
+                          label="태그"
+                          value={item.tags.join(", ")}
+                          onChange={(value) => resume.updateExperienceField(item.id, "tags", value)}
+                          placeholder="쉼표로 구분해 입력"
+                        />
+                        <EditorInput
+                          label="키워드"
+                          value={item.keywords.join(", ")}
+                          onChange={(value) => resume.updateExperienceField(item.id, "keywords", value)}
+                          placeholder="쉼표로 구분해 입력"
+                        />
+                      </div>
+                    </div>
+                  </EditorItemCard>
+                ))}
+              </div>
+            </ResumeEditorSection>
+
+            <ResumeEditorSection
+              title="자격증"
+              description="이력서 본문과 스펙 카드에 함께 표시됩니다."
+              expanded={expandedEditorSectionId === "certificates"}
+              onToggle={() =>
+                setExpandedEditorSectionId((current) => (current === "certificates" ? null : "certificates"))
+              }
+              actionLabel="자격증 추가"
+              onAction={() => {
+                resume.addCollectionItem("certificates");
+                setExpandedEditorSectionId("certificates");
+              }}
+            >
+              <div className="grid gap-3">
+                {resume.certificates.map((item, index) => (
+                  <EditorItemCard
+                    key={`certificate-${index}`}
+                    title={item.name || `자격증 ${index + 1}`}
+                    subtitle={item.date || "취득일 미입력"}
+                    onRemove={() => resume.removeCollectionItem("certificates", index)}
+                  >
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <EditorInput label="자격증명" value={item.name} onChange={(value) => resume.updateCollectionItem("certificates", index, "name", value)} />
+                      <EditorMonthInput label="취득일" value={item.date} onChange={(value) => resume.updateCollectionItem("certificates", index, "date", value)} />
+                      <div className="md:col-span-2">
+                        <EditorInput label="발급기관" value={item.issuer} onChange={(value) => resume.updateCollectionItem("certificates", index, "issuer", value)} />
+                      </div>
+                    </div>
+                  </EditorItemCard>
+                ))}
+              </div>
+            </ResumeEditorSection>
+
+            <ResumeEditorSection
+              title="외국어"
+              description="언어, 점수/시험명, 숙련도 배지를 수정합니다."
+              expanded={expandedEditorSectionId === "languages"}
+              onToggle={() =>
+                setExpandedEditorSectionId((current) => (current === "languages" ? null : "languages"))
+              }
+              actionLabel="어학 추가"
+              onAction={() => {
+                resume.addCollectionItem("languages");
+                setExpandedEditorSectionId("languages");
+              }}
+            >
+              <div className="grid gap-3">
+                {resume.languages.map((item, index) => (
+                  <EditorItemCard
+                    key={`language-${index}`}
+                    title={item.name || `어학 ${index + 1}`}
+                    subtitle={item.levelLabel || "등급 미입력"}
+                    onRemove={() => resume.removeCollectionItem("languages", index)}
+                  >
+                    <div className="grid gap-3">
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <EditorInput label="언어" value={item.name} onChange={(value) => resume.updateCollectionItem("languages", index, "name", value)} />
+                        <EditorInput label="등급" value={item.levelLabel ?? ""} onChange={(value) => resume.updateCollectionItem("languages", index, "levelLabel", value)} />
+                      </div>
+                      <EditorInput label="세부 내용" value={item.detail} onChange={(value) => resume.updateCollectionItem("languages", index, "detail", value)} />
+                    </div>
+                  </EditorItemCard>
+                ))}
+              </div>
+            </ResumeEditorSection>
+
+            <ResumeEditorSection
+              title="기술 스택"
+              description="스킬명, 분야, 숙련도를 수정합니다."
+              expanded={expandedEditorSectionId === "skills"}
+              onToggle={() =>
+                setExpandedEditorSectionId((current) => (current === "skills" ? null : "skills"))
+              }
+              actionLabel="스택 추가"
+              onAction={() => {
+                resume.addCollectionItem("skillSpecs");
+                setExpandedEditorSectionId("skills");
+              }}
+            >
+              <div className="grid gap-3">
+                {resume.skillSpecs.map((item, index) => (
+                  <EditorItemCard
+                    key={`skill-${index}`}
+                    title={item.name || `기술 ${index + 1}`}
+                    subtitle={item.levelLabel}
+                    onRemove={() => resume.removeCollectionItem("skillSpecs", index)}
+                  >
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <EditorInput label="기술명" value={item.name} onChange={(value) => resume.updateCollectionItem("skillSpecs", index, "name", value)} />
+                      <EditorInput label="분야" value={item.track} onChange={(value) => resume.updateCollectionItem("skillSpecs", index, "track", value)} />
+                      <div className="md:col-span-2">
+                        <EditorField label="숙련도">
+                          <select
+                            value={item.levelLabel}
+                            onChange={(event) => resume.updateCollectionItem("skillSpecs", index, "levelLabel", event.target.value)}
+                            className="rounded-xl border border-slate-200 bg-white px-3 py-2 outline-none focus:border-cyan-300"
+                          >
+                            <option value="상">상</option>
+                            <option value="중">중</option>
+                            <option value="하">하</option>
+                          </select>
+                        </EditorField>
+                      </div>
+                    </div>
+                  </EditorItemCard>
+                ))}
+              </div>
+            </ResumeEditorSection>
+
+            <ResumeEditorSection
+              title="수상"
+              description="수상명과 주최 기관을 편집합니다."
+              expanded={expandedEditorSectionId === "awards"}
+              onToggle={() =>
+                setExpandedEditorSectionId((current) => (current === "awards" ? null : "awards"))
+              }
+              actionLabel="수상 추가"
+              onAction={() => {
+                resume.addCollectionItem("awards");
+                setExpandedEditorSectionId("awards");
+              }}
+            >
+              <div className="grid gap-3">
+                {resume.awards.map((item, index) => (
+                  <EditorItemCard
+                    key={`award-${index}`}
+                    title={item.title || `수상 ${index + 1}`}
+                    subtitle={item.issuer || "기관 미입력"}
+                    onRemove={() => resume.removeCollectionItem("awards", index)}
+                  >
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <EditorInput label="수상명" value={item.title} onChange={(value) => resume.updateCollectionItem("awards", index, "title", value)} />
+                      <EditorInput label="주최 기관" value={item.issuer} onChange={(value) => resume.updateCollectionItem("awards", index, "issuer", value)} />
+                    </div>
+                  </EditorItemCard>
+                ))}
+              </div>
+            </ResumeEditorSection>
+
+            <ResumeEditorSection
+              title="논문"
+              description="논문 제목을 편집합니다."
+              expanded={expandedEditorSectionId === "papers"}
+              onToggle={() =>
+                setExpandedEditorSectionId((current) => (current === "papers" ? null : "papers"))
+              }
+              actionLabel="논문 추가"
+              onAction={() => {
+                resume.addCollectionItem("papers");
+                setExpandedEditorSectionId("papers");
+              }}
+            >
+              <div className="grid gap-3">
+                {resume.papers.map((item, index) => (
+                  <EditorItemCard
+                    key={`paper-${index}`}
+                    title={item.title || `논문 ${index + 1}`}
+                    onRemove={() => resume.removeCollectionItem("papers", index)}
+                  >
+                    <EditorInput label="논문 제목" value={item.title} onChange={(value) => resume.updateCollectionItem("papers", index, "title", value)} />
+                  </EditorItemCard>
+                ))}
+              </div>
+            </ResumeEditorSection>
+          </div>
+        </SurfaceCard>
       </div>
     </div>
   );

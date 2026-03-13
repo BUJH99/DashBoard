@@ -22,7 +22,7 @@ export function OfferGlassSelect({
       options={options}
       onChange={onChange}
       tone={tone}
-      size="lg"
+      size="sm"
     />
   );
 }

@@ -46,7 +46,7 @@ export function CompanyTab({ controller }: { controller: DashboardController }) 
   return (
     <div className="grid min-h-[840px] gap-6 xl:grid-cols-[0.34fr_0.66fr]">
       <CompanyPostingFilterSection companies={controller.companies} />
-      <CompanyOverviewSection companies={controller.companies} />
+      <CompanyOverviewSection companies={controller.companies} portfolio={controller.portfolio} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 {
   "ui": {
-    "activeTab": "calendar",
+    "activeTab": "portfolio",
     "userName": "한정호",
     "postingQuery": "",
     "postingCompanyFilter": "2",
@@ -214,6 +214,7 @@
     ]
   },
   "location": {
+    "homeAddress": "",
     "routeOrigin": "강남역",
     "routeDestination": "SK하이닉스",
     "companyCommuteNotes": {}
@@ -373,7 +374,16 @@
         "url": "https://zdnet.co.kr/view/?no=20260310123046"
       }
     ],
-    "lastCrawledAt": "2026-03-10T04:51:27.364Z"
+    "lastCrawledAt": "2026-03-10T04:51:27.364Z",
+    "periodDays": 30
+  },
+  "portfolio": {
+    "initialized": false,
+    "learningSkills": [],
+    "coursework": [],
+    "studyProjects": [],
+    "studyNotes": [],
+    "projects": []
   },
   "resume": {
     "version": 1,

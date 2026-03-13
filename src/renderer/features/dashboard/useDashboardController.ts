@@ -35,6 +35,10 @@ import {
 import { offerCatalog } from "./domain/seeds/offerSeed";
 import { portfolioData } from "./domain/seeds/portfolioSeed";
 import {
+  capitalAreaStationPresets,
+  capitalAreaSubwayLines,
+} from "../location/data/capitalAreaSubwayLines";
+import {
   enrichPostings,
   getChecklistItems,
 } from "./domain/dashboardSelectors";
@@ -60,7 +64,7 @@ import { useDashboardDerivedCollections } from "./hooks/useDashboardDerivedColle
 import { useDashboardStateSynchronization } from "./hooks/useDashboardStateSynchronization";
 import { usePersistedDashboardState } from "./hooks/usePersistedDashboardState";
 import { useSelectedCompanyModel } from "./hooks/useSelectedCompanyModel";
-import { openExternalUrl } from "../../services/desktop/externalService";
+import { openExternalTarget, openExternalUrl } from "../../services/desktop/externalService";
 import { crawlIndustryNews as crawlIndustryNewsService } from "../../services/desktop/industryNewsService";
 
 const FALLBACK_OFFER_A = offerCatalog[0]?.id ?? "";
@@ -68,10 +72,16 @@ const FALLBACK_OFFER_B = offerCatalog[1]?.id ?? FALLBACK_OFFER_A;
 const RESUME_BASELINE_SCORE = 62;
 const RESUME_DRAFT_VERSION = 1;
 
-const EXPERIENCE_SECTION_LABELS = {
+const RESUME_EXPERIENCE_SECTION_LABELS: Record<
+  DashboardLocalState["resume"]["experiences"][number]["category"],
+  string
+> = {
   internship: "경력 / 인턴",
-  highlights: "핵심 경험",
-} as const;
+  project: "프로젝트",
+  activity: "대외활동",
+  contest: "수상 / 공모전",
+  research: "연구 / 논문",
+};
 
 type ResumeScalarFieldKey = "title" | "targetRole" | "summary" | "userName" | "email";
 type ResumeCollectionKey =
@@ -81,6 +91,13 @@ type ResumeCollectionKey =
   | "skillSpecs"
   | "awards"
   | "papers";
+type PortfolioCollectionKey =
+  | "coursework"
+  | "projects"
+  | "studyProjects"
+  | "studyNotes";
+type PortfolioCollectionValue<Key extends PortfolioCollectionKey> =
+  DashboardLocalState["portfolio"][Key][number];
 
 function cloneResumeExperience(
   item: DashboardLocalState["resume"]["experiences"][number],
@@ -163,6 +180,107 @@ function createEmptyResumeExperience(
   };
 }
 
+function clampPercent(value: number) {
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function clonePortfolioProject(
+  item: DashboardLocalState["portfolio"]["projects"][number],
+): DashboardLocalState["portfolio"]["projects"][number] {
+  return {
+    ...item,
+    tech: [...item.tech],
+  };
+}
+
+function clonePortfolioCoursework(
+  item: DashboardLocalState["portfolio"]["coursework"][number],
+): DashboardLocalState["portfolio"]["coursework"][number] {
+  return {
+    ...item,
+    tags: [...item.tags],
+  };
+}
+
+function createEmptyPortfolioCollectionItem<Key extends PortfolioCollectionKey>(
+  collection: Key,
+  nextId: number,
+): PortfolioCollectionValue<Key> {
+  switch (collection) {
+    case "projects":
+      return {
+        id: nextId,
+        name: "",
+        date: "",
+        role: "",
+        tech: [],
+        impact: "",
+        link: "",
+        browserLink: "",
+        documentLink: "",
+      } as PortfolioCollectionValue<Key>;
+    case "coursework":
+      return {
+        id: nextId,
+        semester: "",
+        name: "",
+        grade: "",
+        relevance: 70,
+        tags: [],
+      } as PortfolioCollectionValue<Key>;
+    case "studyProjects":
+      return {
+        id: nextId,
+        name: "",
+        tech: "",
+        progress: 0,
+        status: "",
+        next: "",
+        link: "",
+        browserLink: "",
+        documentLink: "",
+      } as PortfolioCollectionValue<Key>;
+    case "studyNotes":
+      return {
+        id: nextId,
+        title: "",
+        date: "",
+        category: "",
+        preview: "",
+        link: "",
+        browserLink: "",
+        documentLink: "",
+      } as PortfolioCollectionValue<Key>;
+  }
+}
+
+function getResolvedPortfolioCollection<Key extends PortfolioCollectionKey>(
+  portfolioState: DashboardLocalState["portfolio"],
+  collection: Key,
+): DashboardLocalState["portfolio"][Key] {
+  const storedCollection = portfolioState[collection];
+  if (portfolioState.initialized) {
+    return storedCollection;
+  }
+
+  switch (collection) {
+    case "projects":
+      return portfolioData.projects.map((item) => ({
+        ...item,
+        tech: [...item.tech],
+      })) as DashboardLocalState["portfolio"][Key];
+    case "coursework":
+      return portfolioData.coursework.map((item) => ({
+        ...item,
+        tags: [...item.tags],
+      })) as DashboardLocalState["portfolio"][Key];
+    case "studyProjects":
+      return portfolioData.studyProjects.map((item) => ({ ...item })) as DashboardLocalState["portfolio"][Key];
+    case "studyNotes":
+      return portfolioData.studyNotes.map((item) => ({ ...item })) as DashboardLocalState["portfolio"][Key];
+  }
+}
+
 function buildResumeDraft(
   currentResume: DashboardLocalState["resume"],
   fallbackUserName: string,
@@ -240,8 +358,43 @@ export function useDashboardController() {
     message: null,
     warnings: [],
   });
+  const [companyNewsAutofillState, setCompanyNewsAutofillState] = useState<{
+    phase: "idle" | "loading" | "error" | "done";
+    companyId: number | null;
+    message: string | null;
+  }>({
+    phase: "idle",
+    companyId: null,
+    message: null,
+  });
   const setUiState = useMemo(() => createSetUiState(setDashboardState), []);
   const scheduleEntries = dashboardState.calendar.scheduleEntries;
+  const resolvedPortfolioData = useMemo(
+    () => ({
+      ...portfolioData,
+      learningSkills:
+        dashboardState.portfolio.initialized
+          ? dashboardState.portfolio.learningSkills.map((item) => ({ ...item }))
+          : portfolioData.learningSkills.map((item) => ({ ...item })),
+      coursework:
+        dashboardState.portfolio.initialized
+          ? dashboardState.portfolio.coursework.map((item) => clonePortfolioCoursework(item))
+          : portfolioData.coursework.map((item) => ({ ...item, tags: [...item.tags] })),
+      studyProjects:
+        dashboardState.portfolio.initialized
+          ? dashboardState.portfolio.studyProjects.map((item) => ({ ...item }))
+          : portfolioData.studyProjects.map((item) => ({ ...item })),
+      studyNotes:
+        dashboardState.portfolio.initialized
+          ? dashboardState.portfolio.studyNotes.map((item) => ({ ...item }))
+          : portfolioData.studyNotes.map((item) => ({ ...item })),
+      projects:
+        dashboardState.portfolio.initialized
+          ? dashboardState.portfolio.projects.map((item) => clonePortfolioProject(item))
+          : portfolioData.projects.map((item) => ({ ...item, tech: [...item.tech] })),
+    }),
+    [dashboardState.portfolio],
+  );
   const sanitizedIndustryKeywords = useMemo(
     () => sanitizeIndustryKeywords(dashboardState.industry.keywords),
     [dashboardState.industry.keywords],
@@ -373,6 +526,33 @@ export function useDashboardController() {
   const comparisonCompanyAnalysis =
     resolvedCompanyAnalysisEntries[comparisonCompany.id] ??
     buildDefaultCompanyAnalysisEntry(comparisonCompany, companyDetails[comparisonCompany.id] ?? selectedCompanyDetail, offerCatalog);
+  const selectedCompanyAutoNewsKeywords = useMemo(
+    () =>
+      sanitizeIndustryKeywords([
+        ...selectedCompanyAnalysis.techStack,
+        ...dashboardState.industry.keywords.filter((keyword) =>
+          selectedCompanyAnalysis.techStack.some((tech) => {
+            const normalizedKeyword = normalizeKeyword(keyword);
+            const normalizedTech = normalizeKeyword(tech);
+
+            return (
+              normalizedKeyword.length > 0 &&
+              (normalizedTech.includes(normalizedKeyword) || normalizedKeyword.includes(normalizedTech))
+            );
+          }),
+        ),
+      ]).slice(0, 6),
+    [dashboardState.industry.keywords, selectedCompanyAnalysis.techStack],
+  );
+
+  useEffect(() => {
+    setCompanyNewsAutofillState({
+      phase: "idle",
+      companyId: null,
+      message: null,
+    });
+  }, [selectedCompany.id]);
+
   const companyComparisonRows = buildCompanyComparisonRows(
     selectedCompanyAnalysis,
     comparisonCompanyAnalysis,
@@ -428,7 +608,7 @@ export function useDashboardController() {
     checklistTemplates,
     flashcards,
     schedule: scheduleEntries,
-    portfolioData,
+    portfolioData: resolvedPortfolioData,
     jdScan,
     jdKeywordLibrary,
     calendarYear: CALENDAR_YEAR,
@@ -459,7 +639,7 @@ export function useDashboardController() {
         selectedCompany,
         companyTargets: resolvedCompanyTargets,
         commuteNotesSeed,
-        originPresets,
+        originPresets: [...originPresets, ...capitalAreaStationPresets],
       }),
     [dashboardState, flashcardDeck, postings, resolvedOfferCatalog, scheduleEntries, selectedCompany],
   );
@@ -576,13 +756,21 @@ export function useDashboardController() {
     return items;
   }, [missingResumeKeywords, quantifiedExperienceCount, selectedResumeExperiences.length]);
   const resumeExperienceSections = useMemo(() => {
-    const internships = selectedResumeExperiences.filter((item) => item.category === "internship");
-    const highlights = selectedResumeExperiences.filter((item) => item.category !== "internship");
+    const orderedCategories: DashboardLocalState["resume"]["experiences"][number]["category"][] = [
+      "internship",
+      "project",
+      "activity",
+      "contest",
+      "research",
+    ];
 
-    return [
-      { label: EXPERIENCE_SECTION_LABELS.internship, items: internships },
-      { label: EXPERIENCE_SECTION_LABELS.highlights, items: highlights },
-    ].filter((section) => section.items.length > 0);
+    return orderedCategories
+      .map((category) => ({
+        id: category,
+        label: RESUME_EXPERIENCE_SECTION_LABELS[category],
+        items: selectedResumeExperiences.filter((item) => item.category === category),
+      }))
+      .filter((section) => section.items.length > 0);
   }, [selectedResumeExperiences]);
   const resumeSkillHighlights = useMemo(() => {
     const values = new Set<string>();
@@ -893,6 +1081,91 @@ export function useDashboardController() {
     }));
   };
 
+  const addPortfolioCollectionItem = (collection: PortfolioCollectionKey) => {
+    setDashboardState((current) => {
+      const currentItems = getResolvedPortfolioCollection(current.portfolio, collection);
+      const nextId =
+        currentItems.reduce((maxId, item) => Math.max(maxId, item.id), 0) + 1;
+
+      return {
+        ...current,
+        portfolio: {
+          ...current.portfolio,
+          initialized: true,
+          [collection]: [
+            ...currentItems,
+            createEmptyPortfolioCollectionItem(collection, nextId),
+          ],
+        },
+      };
+    });
+  };
+
+  const updatePortfolioCollectionItem = (
+    collection: PortfolioCollectionKey,
+    itemId: number,
+    field: string,
+    value: string | number,
+  ) => {
+    setDashboardState((current) => {
+      const currentItems = getResolvedPortfolioCollection(current.portfolio, collection);
+
+      return {
+        ...current,
+        portfolio: {
+          ...current.portfolio,
+          initialized: true,
+          [collection]: currentItems.map((item) => {
+            if (item.id !== itemId) {
+              return item;
+            }
+
+            if ((collection === "projects" && field === "tech") || (collection === "coursework" && field === "tags")) {
+              return {
+                ...item,
+                [field]: normalizeListInput(String(value)),
+              };
+            }
+
+            if (
+              (collection === "coursework" && field === "relevance") ||
+              (collection === "studyProjects" && field === "progress")
+            ) {
+              return {
+                ...item,
+                [field]: clampPercent(Number(value)),
+              };
+            }
+
+            return {
+              ...item,
+              [field]: value,
+            };
+          }),
+        },
+      };
+    });
+  };
+
+  const removePortfolioCollectionItem = (collection: PortfolioCollectionKey, itemId: number) => {
+    setDashboardState((current) => {
+      const currentItems = getResolvedPortfolioCollection(current.portfolio, collection);
+
+      return {
+        ...current,
+        portfolio: {
+          ...current.portfolio,
+          initialized: true,
+          [collection]: currentItems.filter((item) => item.id !== itemId),
+        },
+      };
+    });
+  };
+
+  const openPortfolioLink = async (target: string) => {
+    await openExternalTarget(target);
+  };
+
   const openResumeBuilder = () => {
     setUiState("activeTab", "resume");
   };
@@ -911,6 +1184,15 @@ export function useDashboardController() {
       window.print();
     }
   };
+
+  const setHomeAddress = (value: string) =>
+    setDashboardState((current) => ({
+      ...current,
+      location: {
+        ...current.location,
+        homeAddress: value,
+      },
+    }));
 
   const toggleIndustryKeywordEditor = () => {
     setIsIndustryKeywordEditorOpen((current) => !current);
@@ -1255,6 +1537,67 @@ export function useDashboardController() {
     });
   };
 
+  const autofillSelectedCompanyNews = async () => {
+    const tagKeywords = selectedCompanyAutoNewsKeywords;
+    const crawlKeywords = sanitizeIndustryKeywords([selectedCompany.name, ...tagKeywords]).slice(0, 7);
+
+    if (crawlKeywords.length === 0) {
+      setCompanyNewsAutofillState({
+        phase: "error",
+        companyId: selectedCompany.id,
+        message: "자동 뉴스 추가에 사용할 산업 태그가 없습니다.",
+      });
+      return;
+    }
+
+    setCompanyNewsAutofillState({
+      phase: "loading",
+      companyId: selectedCompany.id,
+      message: null,
+    });
+
+    try {
+      const payload = await crawlIndustryNewsService({
+        keywords: crawlKeywords,
+        periodDays: dashboardState.industry.periodDays,
+      });
+      const autoNewsItems = payload.articles.slice(0, 6).map((article) => {
+        const meta = [article.source, article.date].filter(Boolean).join(" · ");
+        return `[${article.tag}] ${article.title}${meta ? ` (${meta})` : ""}`;
+      });
+      const existingTitles = new Set(
+        selectedCompanyAnalysis.news.map((item) => item.replace(/^\[[^\]]+\]\s*/, "").trim()),
+      );
+      const dedupedAutoNews = autoNewsItems.filter((item) => {
+        const normalizedItem = item.replace(/^\[[^\]]+\]\s*/, "").trim();
+        return !existingTitles.has(normalizedItem);
+      });
+      const nextNews = [...selectedCompanyAnalysis.news, ...dedupedAutoNews];
+
+      persistSelectedCompanyAnalysis({
+        ...selectedCompanyAnalysis,
+        news: nextNews,
+      });
+      setCompanyNewsAutofillState({
+        phase: "done",
+        companyId: selectedCompany.id,
+        message:
+          dedupedAutoNews.length > 0
+            ? `${dedupedAutoNews.length}개의 산업 동향 뉴스를 자동 추가했습니다.`
+            : "추가할 새 산업 동향 뉴스가 없어 현재 목록을 유지했습니다.",
+      });
+    } catch (error) {
+      setCompanyNewsAutofillState({
+        phase: "error",
+        companyId: selectedCompany.id,
+        message:
+          error instanceof Error
+            ? error.message
+            : "산업 동향 뉴스를 자동으로 추가하지 못했습니다.",
+      });
+    }
+  };
+
   const updateSelectedCompanyComparisonMetric = (
     field: keyof typeof selectedCompanyAnalysis.comparison,
     value: string | number,
@@ -1315,6 +1658,12 @@ export function useDashboardController() {
 
   return {
     ...controller,
+    location: {
+      ...controller.location,
+      homeAddress: dashboardState.location.homeAddress,
+      setHomeAddress,
+      capitalAreaSubwayLines,
+    },
     companies: {
       ...controller.companies,
       selectedCompanyAnalysis,
@@ -1332,6 +1681,9 @@ export function useDashboardController() {
       saveCompanyComparisonProfile,
       updateSelectedCompanyAnalysisField,
       updateSelectedCompanyAnalysisList,
+      selectedCompanyAutoNewsKeywords,
+      companyNewsAutofillState,
+      autofillSelectedCompanyNews,
       updateSelectedCompanyComparisonMetric,
     },
     offer: {
@@ -1340,12 +1692,19 @@ export function useDashboardController() {
     },
     portfolio: {
       ...controller.portfolio,
+      data: resolvedPortfolioData,
       experienceHubItems: portfolioData.experienceHub,
       selectedResumeExperienceIds: dashboardState.resume.selectedExperienceIds,
+      saveChanges: saveDashboardState,
+      saveMessage: dashboardStateMessage,
       resumeReadyMessage:
         dashboardState.resume.selectedExperienceIds.length >= 3
           ? "경험이 충분히 정리되었습니다. 이제 자소서나 이력서를 작성해보세요."
           : "핵심 경험을 3개 이상 고르면 자소서와 이력서 초안이 더 안정적으로 구성됩니다.",
+      addCollectionItem: addPortfolioCollectionItem,
+      updateCollectionItem: updatePortfolioCollectionItem,
+      removeCollectionItem: removePortfolioCollectionItem,
+      openLink: openPortfolioLink,
       toggleResumeExperience,
       openResumeBuilder,
       openCoverLetterBuilder,

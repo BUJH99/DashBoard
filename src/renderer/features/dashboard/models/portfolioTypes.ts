@@ -81,9 +81,38 @@ export type PortfolioData = {
   resumeUpdated: string;
   skills: { name: string; level: number }[];
   learningSkills: { name: string; progress: number; status: string }[];
-  coursework: { id: number; name: string; grade: string; relevance: number; tags: string[] }[];
-  studyProjects: { id: number; name: string; tech: string; progress: number; status: string; next: string }[];
-  studyNotes: { id: number; title: string; date: string; category: string; preview: string }[];
-  projects: { id: number; name: string; date: string; role: string; tech: string[]; impact: string; link: string }[];
+  coursework: { id: number; semester: string; name: string; grade: string; relevance: number; tags: string[] }[];
+  studyProjects: {
+    id: number;
+    name: string;
+    tech: string;
+    progress: number;
+    status: string;
+    next: string;
+    link: string;
+    browserLink?: string;
+    documentLink?: string;
+  }[];
+  studyNotes: {
+    id: number;
+    title: string;
+    date: string;
+    category: string;
+    preview: string;
+    link: string;
+    browserLink?: string;
+    documentLink?: string;
+  }[];
+  projects: {
+    id: number;
+    name: string;
+    date: string;
+    role: string;
+    tech: string[];
+    impact: string;
+    link: string;
+    browserLink?: string;
+    documentLink?: string;
+  }[];
   experienceHub: ExperienceHubItem[];
 };

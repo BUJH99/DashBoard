@@ -228,13 +228,13 @@ export function CalendarScheduleSection({
                           const nextDay = Number(event.target.value.split("-")[2] ?? selectedScheduleEvent.date);
                           setSelectedDate(nextDay);
                         }}
-                        className="w-full border-0 bg-transparent p-0 text-left text-[28px] font-semibold tracking-[-0.03em] text-slate-900 outline-none [color-scheme:light]"
+                        className="w-full border-0 bg-transparent p-0 text-left text-[18px] font-semibold tracking-[-0.02em] text-slate-900 outline-none md:text-[20px] [color-scheme:light]"
                       />
                     ) : (
                       <button
                         type="button"
                         onClick={() => setActiveIntegratedField("date")}
-                        className="w-full text-left text-[28px] font-semibold tracking-[-0.03em] text-slate-900"
+                        className="w-full text-left text-[18px] font-semibold tracking-[-0.02em] text-slate-900 md:text-[20px]"
                       >
                         {dateDisplayValue}
                       </button>
@@ -248,13 +248,13 @@ export function CalendarScheduleSection({
                         autoFocus
                         onBlur={() => setActiveIntegratedField(null)}
                         onChange={(event) => setSelectedTime(event.target.value)}
-                        className="w-full border-0 bg-transparent p-0 text-left text-[28px] font-semibold tracking-[-0.03em] text-slate-900 outline-none [color-scheme:light]"
+                        className="w-full border-0 bg-transparent p-0 text-left text-[18px] font-semibold tracking-[-0.02em] text-slate-900 outline-none md:text-[20px] [color-scheme:light]"
                       />
                     ) : (
                       <button
                         type="button"
                         onClick={() => setActiveIntegratedField("time")}
-                        className="w-full text-left text-[28px] font-semibold tracking-[-0.03em] text-slate-900"
+                        className="w-full text-left text-[18px] font-semibold tracking-[-0.02em] text-slate-900 md:text-[20px]"
                       >
                         {timeDisplayValue}
                       </button>

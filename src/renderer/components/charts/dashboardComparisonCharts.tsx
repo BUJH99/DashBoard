@@ -132,7 +132,7 @@ export function StrategyMatrix({
         ))}
       </div>
 
-      <div className="relative aspect-[11/8] w-full overflow-hidden rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,0.96),rgba(241,245,249,0.88))] shadow-inner">
+      <div className="relative aspect-[11/9] w-full overflow-hidden rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,0.96),rgba(241,245,249,0.88))] shadow-inner">
         <div
           className="absolute inset-y-0 left-0 border-r border-white/40 bg-slate-100/70"
           style={{ width: `${fitThresholdPercent}%` }}
@@ -243,6 +243,14 @@ export function StrategyMatrix({
           const left = getScaledPercent(point.fit, model.fitScale.min, model.fitScale.max);
           const top =
             100 - getScaledPercent(point.preference, model.preferenceScale.min, model.preferenceScale.max);
+          const shouldPlaceLabelAbove = top > 70;
+          const horizontalLabelClassName =
+            left < 14
+              ? "left-0 translate-x-0"
+              : left > 86
+                ? "right-0 translate-x-0"
+                : "left-1/2 -translate-x-1/2";
+          const verticalLabelClassName = shouldPlaceLabelAbove ? "bottom-12" : "top-12";
 
           return (
             <button
@@ -264,7 +272,9 @@ export function StrategyMatrix({
                 </div>
                 <div
                   className={cn(
-                    "absolute left-1/2 top-12 min-w-[84px] -translate-x-1/2 rounded-2xl border px-2.5 py-2 text-center shadow-sm backdrop-blur transition-all",
+                    "absolute min-w-[84px] max-w-[116px] rounded-2xl border px-2.5 py-2 text-center shadow-sm backdrop-blur transition-all",
+                    horizontalLabelClassName,
+                    verticalLabelClassName,
                     STRATEGY_QUADRANT_TONES[point.quadrantId].label,
                     model.selectedPoint.id === point.id ? "opacity-100" : "opacity-90 group-hover:opacity-100",
                   )}

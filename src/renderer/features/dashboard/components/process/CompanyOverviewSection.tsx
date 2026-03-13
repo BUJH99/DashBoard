@@ -14,15 +14,14 @@ import {
   Target,
   Trash2,
 } from "lucide-react";
-import { GlassSelect } from "../../../../components/ui/GlassSelect";
 import { Pill, ProgressBar, SurfaceCard } from "../../../../components/ui/primitives";
 import { cn } from "../../../../lib/cn";
-import { portfolioData } from "../../domain/seeds/portfolioSeed";
 import type { DashboardController } from "../../useDashboardController";
 import { getCompanyTypeTone } from "../viewUtils";
 
 type CompanyOverviewSectionProps = {
   companies: DashboardController["companies"];
+  portfolio: DashboardController["portfolio"];
 };
 
 type CompanyCard = DashboardController["companies"]["selectedCompany"];
@@ -53,23 +52,23 @@ function normalizeKeyword(value: string) {
   return value.toLowerCase().replace(/[^\p{Letter}\p{Number}가-힣]+/gu, "");
 }
 
-function buildPortfolioKeywordSet() {
+function buildPortfolioKeywordSet(portfolio: DashboardController["portfolio"]) {
   const keywords = new Set<string>();
   const addKeyword = (value: string) => {
     keywords.add(normalizeKeyword(value));
   };
 
-  portfolioData.skills.forEach((skill) => addKeyword(skill.name));
-  portfolioData.learningSkills.forEach((skill) => addKeyword(skill.name));
-  portfolioData.coursework.forEach((course) => {
+  portfolio.data.skills.forEach((skill) => addKeyword(skill.name));
+  portfolio.data.learningSkills.forEach((skill) => addKeyword(skill.name));
+  portfolio.data.coursework.forEach((course) => {
     addKeyword(course.name);
     course.tags.forEach(addKeyword);
   });
-  portfolioData.projects.forEach((project) => {
+  portfolio.data.projects.forEach((project) => {
     addKeyword(project.name);
     project.tech.forEach(addKeyword);
   });
-  portfolioData.experienceHub.forEach((experience) => {
+  portfolio.data.experienceHub.forEach((experience) => {
     addKeyword(experience.title);
     experience.tags.forEach(addKeyword);
     experience.keywords.forEach(addKeyword);
@@ -78,7 +77,10 @@ function buildPortfolioKeywordSet() {
   return keywords;
 }
 
-function getRelevantProjects(companies: DashboardController["companies"]) {
+function getRelevantProjects(
+  companies: DashboardController["companies"],
+  portfolio: DashboardController["portfolio"],
+) {
   const companyKeywords = [
     companies.selectedCompany.name,
     companies.selectedCompanyPosting.title,
@@ -89,7 +91,7 @@ function getRelevantProjects(companies: DashboardController["companies"]) {
     .map(normalizeKeyword)
     .filter(Boolean);
 
-  return [...portfolioData.projects]
+  return [...portfolio.data.projects]
     .map((project) => {
       const haystack = normalizeKeyword(
         [project.name, project.role, project.impact, ...project.tech].join(" "),
@@ -109,8 +111,11 @@ function getRelevantProjects(companies: DashboardController["companies"]) {
     .map((item) => item.project);
 }
 
-function buildCompanyInsightSummary(companies: DashboardController["companies"]) {
-  const portfolioKeywordSet = buildPortfolioKeywordSet();
+function buildCompanyInsightSummary(
+  companies: DashboardController["companies"],
+  portfolio: DashboardController["portfolio"],
+) {
+  const portfolioKeywordSet = buildPortfolioKeywordSet(portfolio);
   const extracted = Array.from(
     new Set([
       ...companies.selectedCompanyPosting.keywords,
@@ -408,9 +413,16 @@ function CompanyComparisonProfileEditorCard({
 
 export function CompanyOverviewSection({
   companies,
+  portfolio,
 }: CompanyOverviewSectionProps) {
-  const relatedExperienceCards = getRelevantProjects(companies);
-  const insightSummary = useMemo(() => buildCompanyInsightSummary(companies), [companies]);
+  const relatedExperienceCards = useMemo(
+    () => getRelevantProjects(companies, portfolio),
+    [companies, portfolio],
+  );
+  const insightSummary = useMemo(
+    () => buildCompanyInsightSummary(companies, portfolio),
+    [companies, portfolio],
+  );
 
   return (
     <SurfaceCard className="relative overflow-hidden p-7">
@@ -592,8 +604,53 @@ export function CompanyOverviewSection({
             <CompanySectionHeader
               icon={Newspaper}
               title="최근 동향 및 뉴스"
-              helper="면접/자소서에 쓸 최신 포인트를 메모해 둘 수 있습니다."
+              helper="수동 메모와 산업동향 태그 기반 자동 추가를 함께 지원합니다."
             />
+            <div className="mb-4 rounded-[24px] border border-slate-200 bg-slate-50/80 p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-black text-slate-900">산업동향 태그 기반 자동 뉴스 추가</p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    선택 기업의 기술 태그와 산업 키워드를 기준으로 최근 뉴스를 바로 메모 목록에 붙입니다.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void companies.autofillSelectedCompanyNews()}
+                  disabled={companies.companyNewsAutofillState.phase === "loading"}
+                  className={cn(
+                    "inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold text-white transition",
+                    companies.companyNewsAutofillState.phase === "loading"
+                      ? "cursor-wait bg-slate-400"
+                      : "bg-slate-900 hover:bg-slate-800",
+                  )}
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  {companies.companyNewsAutofillState.phase === "loading"
+                    ? "자동 추가 중"
+                    : "자동 뉴스 추가"}
+                </button>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {companies.selectedCompanyAutoNewsKeywords.map((keyword) => (
+                  <Pill key={keyword} className="border-slate-200 bg-white text-slate-700">
+                    #{keyword}
+                  </Pill>
+                ))}
+              </div>
+              {companies.companyNewsAutofillState.message ? (
+                <p
+                  className={cn(
+                    "mt-3 text-xs font-semibold",
+                    companies.companyNewsAutofillState.phase === "error"
+                      ? "text-rose-600"
+                      : "text-emerald-600",
+                  )}
+                >
+                  {companies.companyNewsAutofillState.message}
+                </p>
+              ) : null}
+            </div>
             <EditableListSection
               title="최근 동향 및 뉴스"
               helper="최근 동향, 인터뷰 포인트, 채용 메모를 줄 단위로 관리합니다."
@@ -677,29 +734,13 @@ export function CompanyOverviewSection({
           <CompanySectionHeader
             icon={SlidersHorizontal}
             title="기업별 오퍼 반영 테이블"
-            helper="각 기업 카드를 저장하면 오퍼 비교 페이지에 그 기업의 값이 적용됩니다."
+            helper="현재 선택한 기업만 저장 대상으로 보여줍니다."
           />
-          <div className="mb-5 max-w-[260px]">
-            <GlassSelect
-              label="비교 기업"
-              value={String(companies.companyCompareId)}
-              options={companies.companyCompareOptions}
-              onChange={(value) => companies.setCompanyComparisonCompanyId(Number(value))}
-              tone="emerald"
-              size="sm"
-            />
-          </div>
-          <div className="grid gap-5 xl:grid-cols-2">
+          <div className="grid gap-5">
             <CompanyComparisonProfileEditorCard
               company={companies.selectedCompany}
               analysis={companies.selectedCompanyAnalysis}
               tone="blue"
-              onSave={companies.saveCompanyComparisonProfile}
-            />
-            <CompanyComparisonProfileEditorCard
-              company={companies.comparisonCompany}
-              analysis={companies.comparisonCompanyAnalysis}
-              tone="emerald"
               onSave={companies.saveCompanyComparisonProfile}
             />
           </div>

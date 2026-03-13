@@ -5,6 +5,8 @@ import type {
 import type { CoverLetterSpellcheckRequest } from "../../shared/cover-letter-spellcheck-service-contracts.js";
 import type { DashboardLocalState } from "../../shared/dashboard-state-contracts.js";
 import type { IndustryNewsCrawlRequest } from "../../shared/industry-news-service-contracts.js";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
 import { ipcMain, shell } from "electron";
 import { checkCoverLetterSpelling } from "../services/coverLetterSpellcheck.cjs";
 import {
@@ -51,7 +53,19 @@ export function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.industryNews.crawl, async (_event, payload: IndustryNewsCrawlRequest) =>
     crawlIndustryNews(payload),
   );
-  ipcMain.handle(IPC_CHANNELS.external.openUrl, async (_event, url: string) => {
-    await shell.openExternal(url);
+  ipcMain.handle(IPC_CHANNELS.external.openUrl, async (_event, target: string) => {
+    const trimmedTarget = target.trim();
+    if (/^[a-z][a-z\d+.-]*:\/\//i.test(trimmedTarget) && !trimmedTarget.startsWith("file://")) {
+      await shell.openExternal(trimmedTarget);
+      return;
+    }
+
+    const resolvedPath = trimmedTarget.startsWith("file://")
+      ? fileURLToPath(trimmedTarget)
+      : path.resolve(trimmedTarget);
+    const errorMessage = await shell.openPath(resolvedPath);
+    if (errorMessage) {
+      throw new Error(errorMessage);
+    }
   });
 }

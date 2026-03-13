@@ -43,10 +43,12 @@ export function StrategyMatrixSection({
       </div>
 
       <div className="rounded-[28px] border border-slate-200 bg-slate-50/70 p-4 shadow-inner">
-        <StrategyMatrix
-          model={strategyModel}
-          onSelect={companies.updateSelectedCompanyId}
-        />
+        <div className="mx-auto w-full xl:w-[60%]">
+          <StrategyMatrix
+            model={strategyModel}
+            onSelect={companies.updateSelectedCompanyId}
+          />
+        </div>
       </div>
 
       <div className="mt-5 grid gap-4 xl:grid-cols-[0.62fr_0.38fr]">

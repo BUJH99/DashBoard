@@ -131,6 +131,56 @@ export type DashboardResumeExperienceItem = {
   keywords: string[];
 };
 
+export type DashboardPortfolioLearningSkillItem = {
+  name: string;
+  progress: number;
+  status: string;
+};
+
+export type DashboardPortfolioCourseworkItem = {
+  id: number;
+  semester: string;
+  name: string;
+  grade: string;
+  relevance: number;
+  tags: string[];
+};
+
+export type DashboardPortfolioStudyProjectItem = {
+  id: number;
+  name: string;
+  tech: string;
+  progress: number;
+  status: string;
+  next: string;
+  link: string;
+  browserLink?: string;
+  documentLink?: string;
+};
+
+export type DashboardPortfolioStudyNoteItem = {
+  id: number;
+  title: string;
+  date: string;
+  category: string;
+  preview: string;
+  link: string;
+  browserLink?: string;
+  documentLink?: string;
+};
+
+export type DashboardPortfolioProjectItem = {
+  id: number;
+  name: string;
+  date: string;
+  role: string;
+  tech: string[];
+  impact: string;
+  link: string;
+  browserLink?: string;
+  documentLink?: string;
+};
+
 export type DashboardLocalState = {
   ui: {
     activeTab: DashboardTab;
@@ -157,6 +207,7 @@ export type DashboardLocalState = {
     entries: DashboardJobPostingEntry[];
   };
   location: {
+    homeAddress: string;
     routeOrigin: string;
     routeDestination: string;
     companyCommuteNotes: Record<number, CommuteNote>;
@@ -180,6 +231,14 @@ export type DashboardLocalState = {
     articles: DashboardIndustryArticle[];
     lastCrawledAt: string | null;
     periodDays: number;
+  };
+  portfolio: {
+    initialized: boolean;
+    learningSkills: DashboardPortfolioLearningSkillItem[];
+    coursework: DashboardPortfolioCourseworkItem[];
+    studyProjects: DashboardPortfolioStudyProjectItem[];
+    studyNotes: DashboardPortfolioStudyNoteItem[];
+    projects: DashboardPortfolioProjectItem[];
   };
   resume: {
     version: number;
